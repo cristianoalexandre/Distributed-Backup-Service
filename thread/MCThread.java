@@ -8,14 +8,20 @@ import java.util.logging.Logger;
 
 public class MCThread extends Thread
 {
-    private static int storedMsg = 0;
-    private static int getchunkMsg = 1;
-    private static int deleteMsg = 2;
-    private static int removedMsg = 3;
+    private final static int storedMsg = 0;
+    private final static int getchunkMsg = 1;
+    private final static int deleteMsg = 2;
+    private final static int removedMsg = 3;
     
     private MulticastSocket inputSocket;
     public static int multicastPort = 8000;
 
+    public MCThread() throws IOException
+    {
+        inputSocket = new MulticastSocket(MCThread.multicastPort);
+        inputSocket.setTimeToLive(1);
+    }
+    
     @Override
     public void run()
     {
