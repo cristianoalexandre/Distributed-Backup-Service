@@ -2,26 +2,35 @@ package thread;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class MCThread extends Thread
 {
+    // Message types
     private final static int storedMsg = 0;
     private final static int getchunkMsg = 1;
     private final static int deleteMsg = 2;
     private final static int removedMsg = 3;
-    
+    // Multicast definitions
+    public static final String multicastAddress = "237.1.7.4";
+    public static final int multicastPort = 4006;
     private MulticastSocket inputSocket;
-    public static int multicastPort = 8000;
+    // Random number generator
+    private Random rgen;
 
     public MCThread() throws IOException
     {
+        rgen = new Random();
+        
         inputSocket = new MulticastSocket(MCThread.multicastPort);
         inputSocket.setTimeToLive(1);
+        inputSocket.joinGroup(InetAddress.getByName(multicastAddress));
     }
-    
+
     @Override
     public void run()
     {
@@ -40,7 +49,9 @@ public class MCThread extends Thread
                 Logger.getLogger(UserInputThread.class.getName()).log(Level.SEVERE, null, ex);
             }
             String msgReceived = new String(receivedPacket.getData());
-            int msgType = parseMsg(msgReceived);
+            System.out.println("MC - Received: " + msgReceived);
+            
+            //int msgType = parseMsg(msgReceived);
         }
     }
 
@@ -52,21 +63,21 @@ public class MCThread extends Thread
      */
     private int parseMsg(String receivedMsg)
     {
-        String[] msgArray = receivedMsg.trim().split(" ");    
-        
-        switch(msgArray[0])
+        String[] msgArray = receivedMsg.trim().split(" ");
+
+        switch (msgArray[0])
         {
             case "STORED":
-                
+
                 break;
             case "GETCHUNK":
-                
+
                 break;
             case "DELETE":
-                
+
                 break;
             case "REMOVE":
-                
+
                 break;
         }
 

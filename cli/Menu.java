@@ -19,17 +19,19 @@ public class Menu
         System.out.println("2 - Restore");
         System.out.println("3 - Delete");
         System.out.println("4 - Exit");
-        
+
         int option;
-        try (Scanner in = new Scanner(System.in))
-        {
-            option = in.nextInt();
-        }
+        Scanner in = new Scanner(System.in);
+        option = in.nextInt();
+
 
         if (option >= 1 && option <= 4)
         {
             return option;
         }
-        else throw new IllegalStateException();
+        else
+        {
+            throw new IllegalStateException();
+        }
     }
 }

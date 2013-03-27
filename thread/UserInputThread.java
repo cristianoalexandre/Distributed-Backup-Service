@@ -2,34 +2,49 @@ package thread;
 
 import cli.Menu;
 import datatypes.FileDescriptor;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.net.MulticastSocket;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import messages.PutChunk;
 
 public class UserInputThread extends Thread
 {
-    public UserInputThread()
+    // Multicast definitions
+    private MulticastSocket outputMDBSocket;
+
+    public UserInputThread() throws IOException
     {
+        outputMDBSocket = new MulticastSocket(MDBThread.multicastPort);
+        outputMDBSocket.setTimeToLive(1);
     }
 
     @Override
     public void run()
     {
-        try
+        // Asking the user what to do
+        for (;;)
         {
-            // Asking the user what to do
             switch (Menu.ask())
             {
                 case Menu.backup:
+                    doBackup();
                     break;
                 default:
                     System.exit(-1);
             }
+        }
+    }
 
+    private void doBackup()
+    {
+        try
+        {
             // Example Backup File...
-            FileDescriptor toBackup = new FileDescriptor("./BackupFolder/multicast.pdf");
+            FileDescriptor toBackup = new FileDescriptor(FileDescriptor.backupDir + "/multicast.pdf");
             System.out.println(toBackup.exists());
 
             // Getting the file id - hashing through SHA-256
@@ -37,9 +52,13 @@ public class UserInputThread extends Thread
 
             // Dividing the file into chunks
             toBackup.breakToChunks();
-            
-            // Open Socket to start Multicasting the PUTCHUNK requests, one per chunk.
 
+            // ======================= //
+            PutChunk pc = new PutChunk(FileDescriptor.sentChunkDir + "/" + toBackup.getSHA256filenameHash() + "/" + toBackup.getSHA256filenameHash() + "_000001");
+
+            // Open Socket to start Multicasting the PUTCHUNK requests, one per chunk.
+            InetAddress MDBAddress = InetAddress.getByName(MDBThread.multicastAddress);
+            outputMDBSocket.send(new DatagramPacket(pc.toString().getBytes(), pc.toString().length(), MDBAddress, MDBThread.multicastPort));
         }
         catch (NoSuchAlgorithmException | IOException ex)
         {

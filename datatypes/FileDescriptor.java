@@ -11,13 +11,16 @@ import java.security.NoSuchAlgorithmException;
 
 public class FileDescriptor extends File
 {
-    private static final int chunkSize = 64000; // 64KB
+    public static final String backupDir = "./Backup";
+    public static final String receivedChunkDir = "./RecvChunk";
+    public static final String sentChunkDir = backupDir + "/SentChunk";
+    public static final int chunkSize = 64000; // 64KB
     private String SHA256filenameHash;
 
     /**
-     * 
+     *
      * @param filename
-     * @throws NoSuchAlgorithmException 
+     * @throws NoSuchAlgorithmException
      */
     public FileDescriptor(String filename) throws NoSuchAlgorithmException
     {
@@ -48,7 +51,7 @@ public class FileDescriptor extends File
         String hash = this.getSHA256filenameHash();
 
         // If it doesn't exist, create a dir to place chunks
-        File newDir = new File("./ChunkFolder/" + hash);
+        File newDir = new File(sentChunkDir + "/" + hash);
         if (!newDir.exists())
         {
             newDir.mkdir();
@@ -61,7 +64,7 @@ public class FileDescriptor extends File
         while ((tmp = bis.read(buffer)) > 0)
         {
             // Filenames will be placed with Hash.ChunkNo format, with string sizes of 256.6
-            File newFile = new File("./ChunkFolder/" + hash + "/" + hash + "." + String.format("%06d", partCounter++));
+            File newFile = new File(sentChunkDir + "/" + hash + "/" + hash + "_" + String.format("%06d", partCounter++));
             newFile.createNewFile();
             out = new FileOutputStream(newFile);
             out.write(buffer, 0, tmp);
@@ -71,7 +74,7 @@ public class FileDescriptor extends File
         // If last chunk has chunkSize bytes, we need to create a final chunk with 0 byte size
         if (this.length() % chunkSize == 0)
         {
-            File newFile = new File("./ChunkFolder/" + hash + "/" + hash + "." + String.format("%06d", partCounter++));
+            File newFile = new File("./ChunkFolder/" + hash + "/" + hash + "_" + String.format("%06d", partCounter++));
             newFile.createNewFile();
         }
     }
