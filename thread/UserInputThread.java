@@ -25,18 +25,19 @@ public class UserInputThread extends Thread
     @Override
     public void run()
     {
-        // Asking the user what to do
-        for (;;)
-        {
-            switch (Menu.ask())
-            {
-                case Menu.backup:
-                    doBackup();
-                    break;
-                default:
-                    System.exit(-1);
-            }
-        }
+        /*
+         // Asking the user what to do
+         for (;;)
+         {
+         switch (Menu.ask())
+         {
+         case Menu.backup:
+         doBackup();
+         break;
+         default:
+         System.exit(-1);
+         }
+         }*/
     }
 
     private void doBackup()
