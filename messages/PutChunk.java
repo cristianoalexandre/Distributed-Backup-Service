@@ -2,6 +2,8 @@ package messages;
 
 import datatypes.FileDescriptor;
 import exceptions.InvalidMessageArguments;
+import gui.FileChooserFrame;
+
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -21,10 +23,11 @@ public class PutChunk
     {
         // Getting the fileId and chunkNo through the filename
         FileDescriptor chunk = new FileDescriptor(pathToChunk);
-        System.out.println(chunk.getName());
+        //System.out.println(chunk.getName());
+        FileChooserFrame.log.append(chunk.getName() + "\n");
 
         String[] chunkFileNameSplitted = (chunk.getName()).split("_");
-        System.out.println(chunkFileNameSplitted.length);
+        //System.out.println(chunkFileNameSplitted.length);
 
         fileId = chunkFileNameSplitted[0];
         chunkNo = chunkFileNameSplitted[1];

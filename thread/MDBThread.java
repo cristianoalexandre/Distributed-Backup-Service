@@ -49,7 +49,8 @@ public class MDBThread extends Thread
 
             String msgReceived = new String(receivePacket.getData());
 
-            System.out.println("MDB - Received: " + msgReceived);
+            //System.out.println("MDB - Received: " + msgReceived);
+            FileChooserFrame.log.append("MDB - Received: " + msgReceived + "\n");
 
             switch (msgReceived.split(" ")[0])
             {
@@ -73,15 +74,16 @@ public class MDBThread extends Thread
         outputSocket.setTimeToLive(1);
         InetAddress MCAddress = InetAddress.getByName(MCThread.multicastAddress);
         outputSocket.send(new DatagramPacket(st.toString().getBytes(), st.toString().length(), MCAddress, MCThread.multicastPort));
-        System.out.println("MDB - Sent: " + st);
-        //FileChooserFrame.log.append("dd");
+        //System.out.println("MDB - Sent: " + st);
+        FileChooserFrame.log.append("MDB - Sent: " + st + "\n");
     }
 
     private void parseStored(String msgReceived) throws IOException, InterruptedException
     {
         // Selecting a random time to sleep - give time for other threads to volunteer!
         int sleepTime = rgen.nextInt(400);
-        System.out.println("MDB - Going to sleep for " + sleepTime + " ms...");
+       // System.out.println("MDB - Going to sleep for " + sleepTime + " ms...");
+        FileChooserFrame.log.append("MDB - Going to sleep for " + sleepTime + " ms..." + "\n");
 
         // Before falling asleep, launch a thread to monitor how many STORED have been sent to the network
         final Queue<InetAddress> storedHosts = new PriorityQueue<>();
@@ -95,7 +97,7 @@ public class MDBThread extends Thread
         //ct.join();
 
         // Now, time to decide if storing or not!
-        System.out.println(storedHosts.size());
+       // System.out.println(storedHosts.size());
        // System.out.println("Hosts stored: " + storedHosts.element());
 
         //
@@ -125,9 +127,11 @@ public class MDBThread extends Thread
                     DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 
                     mcSocket.receive(receivePacket);
-                    System.out.println("MDB - Received (MC Channel): " + new String(receivePacket.getData()));
+                    //System.out.println("MDB - Received (MC Channel): " + new String(receivePacket.getData()));
+                    FileChooserFrame.log.append("MDB - Received (MC Channel): " + new String(receivePacket.getData()) + "\n");
+                    
                     storedHosts.add(receivePacket.getAddress());
-                    System.out.println(storedHosts.size());
+                    //System.out.println(storedHosts.size());
                 }
                 catch (IOException ex)
                 {

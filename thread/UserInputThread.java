@@ -2,6 +2,8 @@ package thread;
 
 import cli.Menu;
 import datatypes.FileDescriptor;
+import gui.FileChooserFrame;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -46,10 +48,12 @@ public class UserInputThread extends Thread
         {
             // Example Backup File...
             FileDescriptor toBackup = new FileDescriptor(FileDescriptor.backupDir + "/multicast.pdf");
-            System.out.println(toBackup.exists());
+            //System.out.println(toBackup.exists());
+            
 
             // Getting the file id - hashing through SHA-256
-            System.out.println(toBackup.getSHA256filenameHash());
+            //System.out.println(toBackup.getSHA256filenameHash());
+            FileChooserFrame.log.append(toBackup.getSHA256filenameHash());
 
             // Dividing the file into chunks
             toBackup.breakToChunks();

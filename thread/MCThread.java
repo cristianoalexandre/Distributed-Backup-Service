@@ -1,5 +1,7 @@
 package thread;
 
+import gui.FileChooserFrame;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -49,7 +51,8 @@ public class MCThread extends Thread
                 Logger.getLogger(UserInputThread.class.getName()).log(Level.SEVERE, null, ex);
             }
             String msgReceived = new String(receivedPacket.getData());
-            System.out.println("MC - Received: " + msgReceived);
+            //System.out.println("MC - Received: " + msgReceived);
+            FileChooserFrame.log.append("MC - Received: " + msgReceived + "\n");
             
             //int msgType = parseMsg(msgReceived);
         }
