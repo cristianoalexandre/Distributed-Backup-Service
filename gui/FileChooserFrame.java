@@ -12,7 +12,10 @@ import javax.swing.filechooser.*;
 public class FileChooserFrame extends JPanel
         implements ActionListener
 {
-	
+	private MCThread mc;
+    MDBThread mdb;
+    MDRThread mdr;
+    UserInputThread input;
     private HashMap<String, String> localChunks = new HashMap<>();
     static private final String newline = "\n";
     JButton openButton, restoreButton;
@@ -22,7 +25,7 @@ public class FileChooserFrame extends JPanel
     private JLabel lblNumberOfCopies;
     private JButton btnDelete;
 
-    public FileChooserFrame()
+    public FileChooserFrame() throws IOException
     {
         super(new BorderLayout());
 
@@ -95,6 +98,18 @@ public class FileChooserFrame extends JPanel
         });
         buttonPanel.add(btnDelete);
         add(logScrollPane, BorderLayout.CENTER);
+        
+
+        mc = new MCThread();
+        mdb = new MDBThread();
+        mdr = new MDRThread();
+        input = new UserInputThread();
+        
+        // Initiating multicast channel threads
+        mc.start();
+        mdb.start();
+        mdr.start();
+        input.start();
     }
 
     public void actionPerformed(ActionEvent e)
@@ -110,6 +125,9 @@ public class FileChooserFrame extends JPanel
                 File file = fc.getSelectedFile();
                 //This is where a real application would open the file.
                 log.append("Uploading: " + file.getName() + "." + newline + "Num of copies: " + comboBox.getSelectedItem() + newline);
+             
+                input.doBackup(file.getName(), file.getPath());
+                
             }
             log.setCaretPosition(log.getDocument().getLength());
         }
@@ -134,8 +152,9 @@ public class FileChooserFrame extends JPanel
 
     /**
      * Create the GUI and show it. For thread safety, this method should be invoked from the event dispatch thread.
+     * @throws IOException 
      */
-    private static void createAndShowGUI()
+    private static void createAndShowGUI() throws IOException
     {
         //Create and set up the window.
         JFrame frame = new JFrame("Backup ME");
@@ -172,25 +191,18 @@ public class FileChooserFrame extends JPanel
             sentChunkFolder.mkdir();
         }
 
-        // Initiating multicast channel threads
-
-        MCThread mc = new MCThread();
-        MDBThread mdb = new MDBThread();
-        MDRThread mdr = new MDRThread();
-        UserInputThread input = new UserInputThread();
-
-        mc.start();
-        mdb.start();
-        mdr.start();
-        input.start();
-
         SwingUtilities.invokeLater(new Runnable()
         {
             public void run()
             {
                 //Turn off metal's use of bold fonts
                 UIManager.put("swing.boldMetal", Boolean.FALSE);
-                createAndShowGUI();
+                try {
+					createAndShowGUI();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
             }
         });
     }

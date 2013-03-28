@@ -10,6 +10,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 
+import sun.org.mozilla.javascript.internal.ast.WhileLoop;
+
 public class PutChunk
 {
     // Header and Data
@@ -18,13 +20,13 @@ public class PutChunk
     private String fileId;
     private int replicationDegree;
     private String chunkNo;
-
+    
     public PutChunk(String pathToChunk, int replicationDegree, String protocolVersion) throws NoSuchAlgorithmException, FileNotFoundException, IOException
     {
         // Getting the fileId and chunkNo through the filename
         FileDescriptor chunk = new FileDescriptor(pathToChunk);
         //System.out.println(chunk.getName());
-        FileChooserFrame.log.append(chunk.getName() + "\n");
+        FileChooserFrame.log.append("Chunk Name: " + chunk.getName() + "\n");
 
         String[] chunkFileNameSplitted = (chunk.getName()).split("_");
         //System.out.println(chunkFileNameSplitted.length);
@@ -53,7 +55,7 @@ public class PutChunk
         // Assumes replication degree of 1, with only version 1.0 of protocol
         this(pathToChunk, 1, "1.0");
     }
-
+    
     public PutChunk(String fileId, int replicationDegree, String protocolVersion, String chunkNo, byte[] chunkData)
     {
         this.chunkData = chunkData;

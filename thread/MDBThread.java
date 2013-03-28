@@ -40,6 +40,7 @@ public class MDBThread extends Thread
     @Override
     public void run()
     {
+    	for(;;){
         try
         {
             byte[] receiveData = new byte[1024];
@@ -63,6 +64,7 @@ public class MDBThread extends Thread
         {
             Logger.getLogger(MDBThread.class.getName()).log(Level.SEVERE, null, ex);
         }
+    	}
     }
 
     private void sendStored(String msgReceived) throws IOException
@@ -86,7 +88,7 @@ public class MDBThread extends Thread
         FileChooserFrame.log.append("MDB - Going to sleep for " + sleepTime + " ms..." + "\n");
 
         // Before falling asleep, launch a thread to monitor how many STORED have been sent to the network
-        final Queue<InetAddress> storedHosts = new PriorityQueue<>();
+        final Queue<String> storedHosts = new PriorityQueue<>();
         CounterThread ct = new CounterThread(storedHosts);
         ct.start();
 
@@ -107,10 +109,10 @@ public class MDBThread extends Thread
 
     public class CounterThread extends Thread
     {
-        private Queue<InetAddress> storedHosts;
+        private Queue<String> storedHosts;
         private boolean stopFlag;
 
-        public CounterThread(Queue<InetAddress> storedHosts)
+        public CounterThread(Queue<String> storedHosts)
         {
             this.storedHosts = storedHosts;
             stopFlag = false;
@@ -130,7 +132,7 @@ public class MDBThread extends Thread
                     //System.out.println("MDB - Received (MC Channel): " + new String(receivePacket.getData()));
                     FileChooserFrame.log.append("MDB - Received (MC Channel): " + new String(receivePacket.getData()) + "\n");
                     
-                    storedHosts.add(receivePacket.getAddress());
+                    storedHosts.add(receivePacket.getAddress().toString());
                     //System.out.println(storedHosts.size());
                 }
                 catch (IOException ex)
