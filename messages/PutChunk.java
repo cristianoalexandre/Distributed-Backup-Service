@@ -10,8 +10,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 
-import sun.org.mozilla.javascript.internal.ast.WhileLoop;
-
 public class PutChunk
 {
     // Header and Data
@@ -86,11 +84,11 @@ public class PutChunk
         byte[] chunkData = null;
 
         // Cycle to ignore unknown header stuff
-        for (int i = 4; i < splittedMsg.length - 2; i++)
+        for (int i = 4; i < splittedMsg.length - 1; i++)
         {
-            if (splittedMsg[i].equals("\r\n") && splittedMsg[i + 1].equals("\r\n"))
+            if (splittedMsg[i].equals("\r\n\r\n"))
             {
-                chunkData = splittedMsg[i + 2].getBytes();
+                chunkData = splittedMsg[i + 1].getBytes();
             }
         }
 

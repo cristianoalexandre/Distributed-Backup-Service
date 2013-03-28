@@ -1,6 +1,9 @@
 package gui;
 
-import thread.*;
+import threads.MDRThread;
+import threads.MDBThread;
+import threads.MCThread;
+import threads.UserInputThread;
 import datatypes.*;
 import java.io.*;
 import java.util.HashMap;

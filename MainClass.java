@@ -1,10 +1,10 @@
 import datatypes.FileDescriptor;
 import java.io.File;
 import java.io.IOException;
-import thread.UserInputThread;
-import thread.MCThread;
-import thread.MDBThread;
-import thread.MDRThread;
+import threads.UserInputThread;
+import threads.MCThread;
+import threads.MDBThread;
+import threads.MDRThread;
 
 public class MainClass
 {    

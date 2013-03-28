@@ -1,4 +1,4 @@
-package thread;
+package threads;
 
 import cli.Menu;
 import datatypes.FileDescriptor;
