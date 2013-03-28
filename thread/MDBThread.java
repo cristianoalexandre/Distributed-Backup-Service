@@ -1,5 +1,6 @@
 package thread;
 
+import gui.*;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -73,6 +74,7 @@ public class MDBThread extends Thread
         InetAddress MCAddress = InetAddress.getByName(MCThread.multicastAddress);
         outputSocket.send(new DatagramPacket(st.toString().getBytes(), st.toString().length(), MCAddress, MCThread.multicastPort));
         System.out.println("MDB - Sent: " + st);
+        //FileChooserFrame.log.append("dd");
     }
 
     private void parseStored(String msgReceived) throws IOException, InterruptedException
@@ -90,11 +92,11 @@ public class MDBThread extends Thread
         Thread.sleep(sleepTime);
 
         ct.finish();
-        ct.join();
+        //ct.join();
 
         // Now, time to decide if storing or not!
         System.out.println(storedHosts.size());
-        System.out.println("Hosts stored: " + storedHosts.element());
+       // System.out.println("Hosts stored: " + storedHosts.element());
 
         //
         

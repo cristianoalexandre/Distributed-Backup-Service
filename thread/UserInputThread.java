@@ -25,7 +25,7 @@ public class UserInputThread extends Thread
     @Override
     public void run()
     {
-        /*
+        
          // Asking the user what to do
          for (;;)
          {
@@ -37,7 +37,7 @@ public class UserInputThread extends Thread
          default:
          System.exit(-1);
          }
-         }*/
+         }
     }
 
     private void doBackup()
