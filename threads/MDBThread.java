@@ -1,15 +1,20 @@
 package threads;
 
+import datatypes.FileDescriptor;
+import exceptions.InvalidMessageArguments;
 import gui.*;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.security.NoSuchAlgorithmException;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import messages.PutChunk;
 import messages.Stored;
 
 public class MDBThread extends Thread
@@ -22,7 +27,6 @@ public class MDBThread extends Thread
     private final MulticastSocket mcSocket;
     // Random number generator
     private Random rgen;
-    
 
     public MDBThread() throws IOException
     {
@@ -40,31 +44,32 @@ public class MDBThread extends Thread
     @Override
     public void run()
     {
-    	for(;;){
-        try
+        for (;;)
         {
-            byte[] receiveData = new byte[1024];
-
-            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-            inputSocket.receive(receivePacket);
-
-            String msgReceived = new String(receivePacket.getData());
-
-            //System.out.println("MDB - Received: " + msgReceived);
-            FileChooserFrame.log.append("MDB - Received: " + msgReceived + "\n");
-
-            switch (msgReceived.split(" ")[0])
+            try
             {
-                case "PUTCHUNK":
-                    parseStored(msgReceived);
-                    break;
+                byte[] receiveData = new byte[1024];
+
+                DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+                inputSocket.receive(receivePacket);
+
+                String msgReceived = new String(receivePacket.getData());
+
+                //System.out.println("MDB - Received: " + msgReceived);
+                FileChooserFrame.log.append("MDB - Received: " + msgReceived + "\n");
+
+                switch (msgReceived.split(" ")[0])
+                {
+                    case "PUTCHUNK":
+                        parseStored(msgReceived);
+                        break;
+                }
+            }
+            catch (IOException | InterruptedException | InvalidMessageArguments | NoSuchAlgorithmException ex)
+            {
+                Logger.getLogger(MDBThread.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        catch (IOException | InterruptedException ex)
-        {
-            Logger.getLogger(MDBThread.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    	}
     }
 
     private void sendStored(String msgReceived) throws IOException
@@ -80,11 +85,11 @@ public class MDBThread extends Thread
         FileChooserFrame.log.append("MDB - Sent: " + st + "\n");
     }
 
-    private void parseStored(String msgReceived) throws IOException, InterruptedException
+    private void parseStored(String msgReceived) throws IOException, InterruptedException, InvalidMessageArguments, NoSuchAlgorithmException
     {
         // Selecting a random time to sleep - give time for other threads to volunteer!
         int sleepTime = rgen.nextInt(400);
-       // System.out.println("MDB - Going to sleep for " + sleepTime + " ms...");
+
         FileChooserFrame.log.append("MDB - Going to sleep for " + sleepTime + " ms..." + "\n");
 
         // Before falling asleep, launch a thread to monitor how many STORED have been sent to the network
@@ -96,15 +101,31 @@ public class MDBThread extends Thread
         Thread.sleep(sleepTime);
 
         ct.finish();
-        //ct.join();
 
-        // Now, time to decide if storing or not!
-       // System.out.println(storedHosts.size());
-       // System.out.println("Hosts stored: " + storedHosts.element());
+        // @TODO: Now, time to decide if storing or not - enhancement!
 
-        //
-        
+        // Store stuff...
+        storeChunk(PutChunk.parseMsg(msgReceived));
         sendStored(msgReceived);
+    }
+
+    private void storeChunk(PutChunk msg) throws NoSuchAlgorithmException, IOException
+    {
+        // Create an appropriate folder, if it doesn't exist.
+        FileDescriptor savedChunkDir = new FileDescriptor(FileDescriptor.receivedChunkDir + "/" + msg.getFileId());
+        if (!savedChunkDir.exists())
+        {
+            savedChunkDir.mkdir();
+        }
+
+        // Saving the chunk...
+        FileDescriptor savedChunk = new FileDescriptor((savedChunkDir.getPath() + "/" + msg.getFileId() + "_" + msg.getChunkNo()));
+        savedChunk.createNewFile();
+
+        FileOutputStream out = new FileOutputStream(savedChunk);
+        System.out.println(msg.getChunkData().length);
+        out.write(msg.getChunkData());
+        out.close();
     }
 
     public class CounterThread extends Thread
@@ -129,11 +150,9 @@ public class MDBThread extends Thread
                     DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 
                     mcSocket.receive(receivePacket);
-                    //System.out.println("MDB - Received (MC Channel): " + new String(receivePacket.getData()));
                     FileChooserFrame.log.append("MDB - Received (MC Channel): " + new String(receivePacket.getData()) + "\n");
-                    
+
                     storedHosts.add(receivePacket.getAddress().toString());
-                    //System.out.println(storedHosts.size());
                 }
                 catch (IOException ex)
                 {

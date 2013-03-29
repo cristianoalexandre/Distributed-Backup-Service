@@ -18,7 +18,7 @@ public class PutChunk
     private String fileId;
     private int replicationDegree;
     private String chunkNo;
-    
+
     public PutChunk(String pathToChunk, int replicationDegree, String protocolVersion) throws NoSuchAlgorithmException, FileNotFoundException, IOException
     {
         // Getting the fileId and chunkNo through the filename
@@ -53,7 +53,7 @@ public class PutChunk
         // Assumes replication degree of 1, with only version 1.0 of protocol
         this(pathToChunk, 1, "1.0");
     }
-    
+
     public PutChunk(String fileId, int replicationDegree, String protocolVersion, String chunkNo, byte[] chunkData)
     {
         this.chunkData = chunkData;
@@ -67,8 +67,8 @@ public class PutChunk
     public String toString()
     {
         return "PUTCHUNK " + protocolVersion + " " + fileId + " "
-                + chunkNo + " " + replicationDegree + " "
-                + "\r\n" + "\r\n" + chunkData.toString();
+               + chunkNo + " " + replicationDegree + " "
+               + "\r\n" + "\r\n" + chunkData.toString();
 
     }
 
@@ -77,8 +77,10 @@ public class PutChunk
         String[] splittedMsg = msg.split(" ");
 
         if (splittedMsg.length < 5)
+        {
             throw new InvalidMessageArguments();
-        
+        }
+
         String protocolVersion = splittedMsg[1];
         String fileID = splittedMsg[2];
         String chunkNo = splittedMsg[3];
@@ -88,15 +90,24 @@ public class PutChunk
         {
             throw new InvalidMessageArguments();
         }
-        
+
+        StringBuilder temp = new StringBuilder("");
         byte[] chunkData = null;
 
         // Cycle to ignore unknown header stuff
-        for (int i = 4; i < splittedMsg.length - 1; i++)
+        for (int i = 4; i < splittedMsg.length; i++)
         {
-            if (splittedMsg[i].equals("\r\n\r\n"))
+            if (splittedMsg[i].charAt(0) == '\r'
+                && splittedMsg[i].charAt(1) == '\n'
+                && splittedMsg[i].charAt(2) == '\r'
+                && splittedMsg[i].charAt(3) == '\n')
             {
-                chunkData = splittedMsg[i + 1].getBytes();
+                for (int k = 0; k < splittedMsg[i].length(); k++)
+                {
+                    temp.append(splittedMsg[i].charAt(k));
+                }
+
+                chunkData = temp.toString().getBytes();
             }
         }
 
