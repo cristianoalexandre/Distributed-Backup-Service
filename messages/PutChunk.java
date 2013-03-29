@@ -8,12 +8,13 @@ import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 
 public class PutChunk
 {
     // Header and Data
-    private byte[] chunkData;
+    private String chunkData;
     private String protocolVersion;
     private String fileId;
     private int replicationDegree;
@@ -23,19 +24,18 @@ public class PutChunk
     {
         // Getting the fileId and chunkNo through the filename
         FileDescriptor chunk = new FileDescriptor(pathToChunk);
-        //System.out.println(chunk.getName());
         FileChooserFrame.log.append("Chunk Name: " + chunk.getName() + "\n");
 
         String[] chunkFileNameSplitted = (chunk.getName()).split("_");
-        //System.out.println(chunkFileNameSplitted.length);
 
         fileId = chunkFileNameSplitted[0];
         chunkNo = chunkFileNameSplitted[1];
 
         // Getting the contents of the chunk to include in the message
-        chunkData = new byte[FileDescriptor.chunkSize];
-        BufferedInputStream bis = new BufferedInputStream(new FileInputStream(chunk));
-        bis.read(chunkData);
+        //chunkData = new byte[FileDescriptor.chunkSize];
+        //BufferedInputStream bis = new BufferedInputStream(new FileInputStream(chunk));
+        //bis.read(chunkData);
+        chunkData = FileDescriptor.readFile(pathToChunk);
 
         // Setting the protocol version and replication degree used
         this.protocolVersion = protocolVersion;
@@ -56,7 +56,7 @@ public class PutChunk
 
     public PutChunk(String fileId, int replicationDegree, String protocolVersion, String chunkNo, byte[] chunkData)
     {
-        this.chunkData = chunkData;
+        this.chunkData = chunkData.toString();
         this.protocolVersion = protocolVersion;
         this.fileId = fileId;
         this.replicationDegree = replicationDegree;
@@ -68,11 +68,11 @@ public class PutChunk
     {
         return "PUTCHUNK " + protocolVersion + " " + fileId + " "
                + chunkNo + " " + replicationDegree + " "
-               + "\r\n" + "\r\n" + chunkData.toString();
+               + "\r\n" + "\r\n" + chunkData;
 
     }
 
-    public static PutChunk parseMsg(String msg) throws InvalidMessageArguments
+    public static PutChunk parseMsg(String msg) throws InvalidMessageArguments, UnsupportedEncodingException
     {
         String[] splittedMsg = msg.split(" ");
 
@@ -94,8 +94,13 @@ public class PutChunk
         StringBuilder temp = new StringBuilder("");
         byte[] chunkData = null;
 
+        for (int i = 0; i < splittedMsg.length; i++)
+        {
+            System.out.println("Element " + i + ": " + splittedMsg[i]);
+        }
+
         // Cycle to ignore unknown header stuff
-        for (int i = 4; i < splittedMsg.length; i++)
+        for (int i = 5; i < splittedMsg.length; i++)
         {
             if (splittedMsg[i].charAt(0) == '\r'
                 && splittedMsg[i].charAt(1) == '\n'
@@ -106,11 +111,12 @@ public class PutChunk
                 {
                     temp.append(splittedMsg[i].charAt(k));
                 }
-
-                chunkData = temp.toString().getBytes();
             }
-        }
 
+            chunkData = temp.toString().getBytes("UTF-8");
+
+        }
+        
         // Header is invalid - throw an exception!
         if (chunkData == null)
         {
@@ -120,9 +126,9 @@ public class PutChunk
         return new PutChunk(fileID, replicationDegree, protocolVersion, chunkNo, chunkData);
     }
 
-    public byte[] getChunkData()
+    public byte[] getChunkData() throws UnsupportedEncodingException
     {
-        return chunkData;
+        return chunkData.getBytes("UTF-8");
     }
 
     public String getChunkNo()
