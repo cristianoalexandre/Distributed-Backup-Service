@@ -129,7 +129,7 @@ public class FileChooserFrame extends JPanel
                 //This is where a real application would open the file.
                 log.append("Uploading: " + file.getName() + "." + newline + "Num of copies: " + comboBox.getSelectedItem() + newline);
              
-                input.doBackup(file.getName(), file.getPath());
+                input.doBackup(file.getName(), file.getPath(), Integer.decode((String) comboBox.getSelectedItem()));
                 
             }
             log.setCaretPosition(log.getDocument().getLength());

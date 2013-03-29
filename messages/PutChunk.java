@@ -39,7 +39,7 @@ public class PutChunk
 
         // Setting the protocol version and replication degree used
         this.protocolVersion = protocolVersion;
-        this.replicationDegree = Math.max(replicationDegree, 9); // maximum replication degree is 9
+        this.replicationDegree = Math.min(replicationDegree, 9); // maximum replication degree is 9
     }
 
     public PutChunk(String pathToChunk, int replicationDegree) throws NoSuchAlgorithmException, FileNotFoundException, IOException
@@ -76,11 +76,19 @@ public class PutChunk
     {
         String[] splittedMsg = msg.split(" ");
 
+        if (splittedMsg.length < 5)
+            throw new InvalidMessageArguments();
+        
         String protocolVersion = splittedMsg[1];
         String fileID = splittedMsg[2];
         String chunkNo = splittedMsg[3];
-        int replicationDegree = Integer.decode(splittedMsg[4]);
+        int replicationDegree = Integer.decode((String) splittedMsg[4]);
 
+        if (Float.parseFloat(protocolVersion) < 1.0 || fileID.length() != 64 || Integer.parseInt(chunkNo) < 0 || Integer.parseInt(chunkNo) > 999999)
+        {
+            throw new InvalidMessageArguments();
+        }
+        
         byte[] chunkData = null;
 
         // Cycle to ignore unknown header stuff
