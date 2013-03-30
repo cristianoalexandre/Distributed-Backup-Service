@@ -51,10 +51,8 @@ public class MCThread extends Thread
                 Logger.getLogger(UserInputThread.class.getName()).log(Level.SEVERE, null, ex);
             }
             String msgReceived = new String(receivedPacket.getData());
-            //System.out.println("MC - Received: " + msgReceived);
+
             FileChooserFrame.log.append("MC - Received: " + msgReceived + "\n");
-            
-            //int msgType = parseMsg(msgReceived);
         }
     }
 
@@ -66,7 +64,7 @@ public class MCThread extends Thread
      */
     private int parseMsg(String receivedMsg)
     {
-        String[] msgArray = receivedMsg.trim().split(" ");
+        String[] msgArray = receivedMsg.split(" ");
 
         switch (msgArray[0])
         {

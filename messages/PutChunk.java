@@ -4,8 +4,6 @@ import datatypes.FileDescriptor;
 import exceptions.InvalidMessageArguments;
 import gui.FileChooserFrame;
 
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -32,9 +30,6 @@ public class PutChunk
         chunkNo = chunkFileNameSplitted[1];
 
         // Getting the contents of the chunk to include in the message
-        //chunkData = new byte[FileDescriptor.chunkSize];
-        //BufferedInputStream bis = new BufferedInputStream(new FileInputStream(chunk));
-        //bis.read(chunkData);
         chunkData = FileDescriptor.readFile(pathToChunk);
 
         // Setting the protocol version and replication degree used
@@ -94,11 +89,6 @@ public class PutChunk
         StringBuilder temp = new StringBuilder("");
         byte[] chunkData = null;
 
-        for (int i = 0; i < splittedMsg.length; i++)
-        {
-            System.out.println("Element " + i + ": " + splittedMsg[i]);
-        }
-
         // Cycle to ignore unknown header stuff
         for (int i = 5; i < splittedMsg.length; i++)
         {
@@ -114,7 +104,6 @@ public class PutChunk
             }
 
             chunkData = temp.toString().getBytes("UTF-8");
-
         }
         
         // Header is invalid - throw an exception!

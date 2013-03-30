@@ -17,11 +17,11 @@ public class FileDescriptor extends File
     public static final String backupDir = "./Backup";
     public static final String receivedChunkDir = "./RecvChunk";
     public static final String sentChunkDir = backupDir + "/SentChunk";
+    public static final String configDir = "./config";
     public static final int chunkSize = 64000; // 64KB
     private String SHA256filenameHash;
 
     /**
-     *
      * @param filename
      * @throws NoSuchAlgorithmException
      */
@@ -32,7 +32,6 @@ public class FileDescriptor extends File
     }
 
     /**
-     *
      * @return the SHA256 hash of the filename
      */
     public String getSHA256filenameHash()

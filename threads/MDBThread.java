@@ -55,7 +55,6 @@ public class MDBThread extends Thread
 
                 String msgReceived = new String(receivePacket.getData());
 
-                //System.out.println("MDB - Received: " + msgReceived);
                 FileChooserFrame.log.append("MDB - Received: " + msgReceived + "\n");
 
                 switch (msgReceived.split(" ")[0])
@@ -72,21 +71,23 @@ public class MDBThread extends Thread
         }
     }
 
-    private void sendStored(String msgReceived) throws IOException
+    private void sendStored(PutChunk msgReceived) throws IOException
     {
-        String[] msgSplitted = msgReceived.split(" ");
-
-        Stored st = new Stored(msgSplitted[2], msgSplitted[3]);
+        Stored st = new Stored(msgReceived.getFileId(), msgReceived.getChunkNo());
         MulticastSocket outputSocket = new MulticastSocket(MCThread.multicastPort);
         outputSocket.setTimeToLive(1);
         InetAddress MCAddress = InetAddress.getByName(MCThread.multicastAddress);
         outputSocket.send(new DatagramPacket(st.toString().getBytes(), st.toString().length(), MCAddress, MCThread.multicastPort));
-        //System.out.println("MDB - Sent: " + st);
+        outputSocket.close();
+        
         FileChooserFrame.log.append("MDB - Sent: " + st + "\n");
     }
 
     private void parseStored(String msgReceived) throws IOException, InterruptedException, InvalidMessageArguments, NoSuchAlgorithmException
     {
+        // Creating a PutChunk object from parsing the message...
+        PutChunk msg = PutChunk.parseMsg(msgReceived);
+        
         // Selecting a random time to sleep - give time for other threads to volunteer!
         int sleepTime = rgen.nextInt(400);
 
@@ -105,8 +106,8 @@ public class MDBThread extends Thread
         // @TODO: Now, time to decide if storing or not - enhancement!
 
         // Store stuff...
-        storeChunk(PutChunk.parseMsg(msgReceived));
-        sendStored(msgReceived);
+        storeChunk(msg);
+        sendStored(msg);
     }
 
     private void storeChunk(PutChunk msg) throws NoSuchAlgorithmException, IOException
@@ -146,12 +147,22 @@ public class MDBThread extends Thread
             {
                 try
                 {
+                    // Receiving messages on the MC Channel
                     byte[] receiveData = new byte[1024];
                     DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 
                     mcSocket.receive(receivePacket);
-                    FileChooserFrame.log.append("MDB - Received (MC Channel): " + new String(receivePacket.getData()) + "\n");
-
+                    String receivedMsg = new String(receivePacket.getData());
+                    
+                    FileChooserFrame.log.append("MDB - Received (MC Channel): " + receivedMsg + "\n");
+                    
+                    // Checking if the message is a STORED and matches our file
+                    String[] splitMsg = receivedMsg.split(" ");
+                    if (splitMsg[0].equals("STORED"))
+                    {
+                        
+                    }
+                    
                     storedHosts.add(receivePacket.getAddress().toString());
                 }
                 catch (IOException ex)

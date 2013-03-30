@@ -1,37 +1,44 @@
 package gui;
 
+import datatypes.RemoteIdentifier;
 import threads.MDRThread;
 import threads.MDBThread;
 import threads.MCThread;
 import threads.UserInputThread;
-import datatypes.*;
 import java.io.*;
 import java.util.HashMap;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import javax.swing.*;
-import javax.swing.filechooser.*;
 
-public class FileChooserFrame extends JPanel
-        implements ActionListener
+public class FileChooserFrame extends JPanel implements ActionListener
 {
-	private MCThread mc;
-    MDBThread mdb;
-    MDRThread mdr;
-    UserInputThread input;
-    private HashMap<String, String> localChunks = new HashMap<>();
-    static private final String newline = "\n";
-    JButton openButton, restoreButton;
+    private MCThread mc;
+    private MDBThread mdb;
+    private MDRThread mdr;
+    private UserInputThread input;
+    
+    private JButton openButton, restoreButton;
     public static JTextArea log;
-    JFileChooser fc;
+    private JFileChooser fc;
     private JComboBox comboBox;
     private JLabel lblNumberOfCopies;
     private JButton btnDelete;
+    
+    static private final String newline = "\n";
+    
+    private static Set<RemoteIdentifier> remoteChunks;
 
     public FileChooserFrame() throws IOException
     {
         super(new BorderLayout());
 
+        remoteChunks = Collections.synchronizedSet(new HashSet<RemoteIdentifier>());
+        
         //Create the log first, because the action listeners
         //need to refer to it.
         log = new JTextArea(5, 20);
@@ -46,9 +53,12 @@ public class FileChooserFrame extends JPanel
         openButton.addActionListener(this);
 
         restoreButton = new JButton("Restore");
-        restoreButton.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent arg0) {
-        	}
+        restoreButton.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent arg0)
+            {
+            }
         });
         restoreButton.addMouseListener(new MouseAdapter()
         {
@@ -67,7 +77,7 @@ public class FileChooserFrame extends JPanel
 
 
         /*comboBox indicating the number of copies of a file user wants to backup*/
-        
+
         lblNumberOfCopies = new JLabel("Number of Copies");
         buttonPanel.add(lblNumberOfCopies);
         comboBox = new JComboBox();
@@ -89,25 +99,27 @@ public class FileChooserFrame extends JPanel
 
         //Add the buttons and the log to this panel.
         add(buttonPanel, BorderLayout.PAGE_START);
-        
+
         btnDelete = new JButton("Delete");
-        btnDelete.addMouseListener(new MouseAdapter() {
-        	@Override
-        	public void mouseClicked(MouseEvent e) {
-        		DeleteFrame deleteFrame = new DeleteFrame();
+        btnDelete.addMouseListener(new MouseAdapter()
+        {
+            @Override
+            public void mouseClicked(MouseEvent e)
+            {
+                DeleteFrame deleteFrame = new DeleteFrame();
                 deleteFrame.setVisible(true);
                 deleteFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        	}
+            }
         });
         buttonPanel.add(btnDelete);
         add(logScrollPane, BorderLayout.CENTER);
-        
+
 
         mc = new MCThread();
         mdb = new MDBThread();
         mdr = new MDRThread();
         input = new UserInputThread();
-        
+
         // Initiating multicast channel threads
         mc.start();
         mdb.start();
@@ -128,9 +140,9 @@ public class FileChooserFrame extends JPanel
                 File file = fc.getSelectedFile();
                 //This is where a real application would open the file.
                 log.append("Uploading: " + file.getName() + "." + newline + "Num of copies: " + comboBox.getSelectedItem() + newline);
-             
+
                 input.doBackup(file.getName(), file.getPath(), Integer.decode((String) comboBox.getSelectedItem()));
-                
+
             }
             log.setCaretPosition(log.getDocument().getLength());
         }
@@ -155,7 +167,8 @@ public class FileChooserFrame extends JPanel
 
     /**
      * Create the GUI and show it. For thread safety, this method should be invoked from the event dispatch thread.
-     * @throws IOException 
+     *
+     * @throws IOException
      */
     private static void createAndShowGUI() throws IOException
     {
@@ -200,13 +213,21 @@ public class FileChooserFrame extends JPanel
             {
                 //Turn off metal's use of bold fonts
                 UIManager.put("swing.boldMetal", Boolean.FALSE);
-                try {
-					createAndShowGUI();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+                try
+                {
+                    createAndShowGUI();
+                }
+                catch (IOException e)
+                {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
         });
+    }
+    
+    public static void addRemoteIdentifier(RemoteIdentifier ri)
+    {
+        remoteChunks.add(ri);
     }
 }

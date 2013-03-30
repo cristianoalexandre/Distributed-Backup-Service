@@ -1,7 +1,6 @@
 package threads;
 
 import datatypes.FileDescriptor;
-import gui.FileChooserFrame;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,16 +22,6 @@ public class UserInputThread extends Thread
     {
         outputMDBSocket = new MulticastSocket(MDBThread.multicastPort);
         outputMDBSocket.setTimeToLive(1);
-    }
-
-    @Override
-    public void run()
-    {
-        // Asking the user what to do
-		/*
-         * for (;;) { switch (Menu.ask()) { case Menu.backup: doBackup(); break;
-         * default: System.exit(-1); } }
-         */
     }
 
     public void doBackup(String filename, String path, int replicationDegree)
@@ -70,5 +59,10 @@ public class UserInputThread extends Thread
         {
             Logger.getLogger(UserInputThread.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    @Override
+    public void run()
+    {
     }
 }
