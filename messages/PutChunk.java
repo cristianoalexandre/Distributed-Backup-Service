@@ -49,7 +49,7 @@ public class PutChunk
         this(pathToChunk, 1, "1.0");
     }
 
-    public PutChunk(String fileId, int replicationDegree, String protocolVersion, String chunkNo, byte[] chunkData)
+    public PutChunk(String fileId, int replicationDegree, String protocolVersion, String chunkNo, String chunkData)
     {
         this.chunkData = chunkData.toString();
         this.protocolVersion = protocolVersion;
@@ -69,7 +69,7 @@ public class PutChunk
 
     public static PutChunk parseMsg(String msg) throws InvalidMessageArguments, UnsupportedEncodingException
     {
-        String[] splittedMsg = msg.split(" ");
+        String[] splittedMsg = msg.trim().split(" ");
 
         if (splittedMsg.length < 5)
         {
@@ -87,7 +87,7 @@ public class PutChunk
         }
 
         StringBuilder temp = new StringBuilder("");
-        byte[] chunkData = null;
+        String chunkData = null;
 
         // Cycle to ignore unknown header stuff
         for (int i = 5; i < splittedMsg.length; i++)
@@ -97,15 +97,27 @@ public class PutChunk
                 && splittedMsg[i].charAt(2) == '\r'
                 && splittedMsg[i].charAt(3) == '\n')
             {
-                for (int k = 0; k < splittedMsg[i].length(); k++)
+                for (int k = 4; k < splittedMsg[i].length(); k++)
                 {
                     temp.append(splittedMsg[i].charAt(k));
                 }
+
+                System.out.println("After internal loop:" + temp.toString());
+                i++;
+                for (; i < splittedMsg.length; i++)
+                {
+                    {
+                        temp.append(" ");
+                        temp.append(splittedMsg[i]);
+                    }
+                }
+
+                System.out.println("After external loop:" + temp.toString());
             }
 
-            chunkData = temp.toString().getBytes("UTF-8");
+            chunkData = temp.toString();
         }
-        
+
         // Header is invalid - throw an exception!
         if (chunkData == null)
         {
