@@ -66,9 +66,10 @@ public class FileChooserFrame extends JPanel implements ActionListener
             @Override
             public void mouseClicked(MouseEvent e)
             {
-                RestoreFrame restoreFrame = new RestoreFrame();
+            	openRestoreDialog();
+                /*RestoreFrame restoreFrame = new RestoreFrame();
                 restoreFrame.setVisible(true);
-                restoreFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                restoreFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);*/
             }
         });
 
@@ -107,7 +108,7 @@ public class FileChooserFrame extends JPanel implements ActionListener
             @Override
             public void mouseClicked(MouseEvent e)
             {
-            	openDialog();
+            	openDeleteDialog();
                 /*DeleteFrame deleteFrame = new DeleteFrame();
                 deleteFrame.setVisible(true);
                 deleteFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);*/
@@ -258,7 +259,7 @@ public class FileChooserFrame extends JPanel implements ActionListener
 
     }
     
-    private void openDialog() {  
+    private void openDeleteDialog() {  
         JDialog dialog = new JDialog();
         dialog.setTitle("Delete File");
         dialog.setResizable(true);
@@ -280,6 +281,36 @@ public class FileChooserFrame extends JPanel implements ActionListener
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+			}
+		});
+		
+        dialog.getContentPane().add(textField);
+        dialog.getContentPane().add(btnNewButton);
+		textField.setColumns(20);
+		
+		JTextArea textArea = new JTextArea();
+		dialog.getContentPane().add(textArea);
+		
+		
+        dialog.setModal(true);  
+        dialog.pack();  
+        dialog.setVisible(true);  
+    } 
+    
+    private void openRestoreDialog() {  
+        JDialog dialog = new JDialog();
+        dialog.setTitle("Restore File");
+        dialog.setResizable(true);
+        
+        dialog.getContentPane().setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        dialog.getContentPane().add(new JLabel("Filename:"));
+        final JTextField textField = new JTextField();
+        
+        JButton btnNewButton = new JButton("Get it!");
+        btnNewButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0){
+			
 			}
 		});
 		
