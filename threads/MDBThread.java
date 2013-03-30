@@ -124,7 +124,6 @@ public class MDBThread extends Thread
         savedChunk.createNewFile();
 
         FileOutputStream out = new FileOutputStream(savedChunk);
-        System.out.println(msg.getChunkData().length);
         out.write(msg.getChunkData());
         out.close();
     }
