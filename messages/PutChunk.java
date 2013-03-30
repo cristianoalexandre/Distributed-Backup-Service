@@ -31,7 +31,7 @@ public class PutChunk
 
         // Getting the contents of the chunk to include in the message
         chunkData = FileDescriptor.readFile(pathToChunk);
-
+        
         // Setting the protocol version and replication degree used
         this.protocolVersion = protocolVersion;
         this.replicationDegree = Math.min(replicationDegree, 9); // maximum replication degree is 9
@@ -63,8 +63,7 @@ public class PutChunk
     {
         return "PUTCHUNK " + protocolVersion + " " + fileId + " "
                + chunkNo + " " + replicationDegree + " "
-               + "\r\n" + "\r\n" + chunkData;
-
+               + "\r\n" + "\r\n" + chunkData.toString();
     }
 
     public static PutChunk parseMsg(String msg) throws InvalidMessageArguments, UnsupportedEncodingException
@@ -102,7 +101,7 @@ public class PutChunk
                     temp.append(splittedMsg[i].charAt(k));
                 }
 
-                System.out.println("After internal loop:" + temp.toString());
+               
                 i++;
                 for (; i < splittedMsg.length; i++)
                 {
@@ -112,7 +111,7 @@ public class PutChunk
                     }
                 }
 
-                System.out.println("After external loop:" + temp.toString());
+               
             }
 
             chunkData = temp.toString();

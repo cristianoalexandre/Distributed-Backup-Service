@@ -48,7 +48,7 @@ public class MDBThread extends Thread
         {
             try
             {
-                byte[] receiveData = new byte[1024];
+                byte[] receiveData = new byte[65535];
 
                 DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
                 inputSocket.receive(receivePacket);
