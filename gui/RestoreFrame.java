@@ -36,7 +36,6 @@ public class RestoreFrame extends JFrame {
 		contentPane.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 		
 		textField = new JTextField();
-		
 		contentPane.add(textField);
 		textField.setColumns(20);
 		

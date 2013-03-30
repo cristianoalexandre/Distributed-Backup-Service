@@ -1,17 +1,20 @@
 package gui;
 
+import datatypes.FileDescriptor;
 import datatypes.RemoteIdentifier;
 import threads.MDRThread;
 import threads.MDBThread;
 import threads.MCThread;
 import threads.UserInputThread;
 import java.io.*;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 import javax.swing.*;
 
@@ -106,9 +109,10 @@ public class FileChooserFrame extends JPanel implements ActionListener
             @Override
             public void mouseClicked(MouseEvent e)
             {
-                DeleteFrame deleteFrame = new DeleteFrame();
+            	openDialog();
+                /*DeleteFrame deleteFrame = new DeleteFrame();
                 deleteFrame.setVisible(true);
-                deleteFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                deleteFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);*/
             }
         });
         buttonPanel.add(btnDelete);
@@ -230,4 +234,69 @@ public class FileChooserFrame extends JPanel implements ActionListener
     {
         remoteChunks.add(ri);
     }
+    
+    /*Deletes a File on network, if it exists*/
+    public void deleteFile(String filename) throws NoSuchAlgorithmException, IOException{
+    	
+    	FileDescriptor toDelete = new FileDescriptor(filename);
+    	
+    	String hash = toDelete.getSHA256filenameHash();
+    	
+    	
+    	Iterator it = remoteChunks.iterator();
+    	
+    	//System.out.println(filename);
+    	
+    	while (it.hasNext()) {
+    	 RemoteIdentifier ri = (RemoteIdentifier) it.next();
+    	 
+    	 if(ri.getFilename().equals(filename)){
+    		 input.sendDeleteMessage(hash);
+    	 }else{
+    		
+    	 }
+    	 
+    	}
+
+    }
+    
+    private void openDialog() {  
+        JDialog dialog = new JDialog();
+        dialog.setTitle("Delete File");
+        dialog.setResizable(true);
+        
+        dialog.getContentPane().setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        dialog.getContentPane().add(new JLabel("Filename:"));
+        final JTextField textField = new JTextField();
+        
+        JButton btnNewButton = new JButton("Delete it!");
+        btnNewButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0){
+				try {
+					deleteFile(textField.getText());
+				} catch (NoSuchAlgorithmException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+		
+        dialog.getContentPane().add(textField);
+        dialog.getContentPane().add(btnNewButton);
+		textField.setColumns(20);
+		
+		JTextArea textArea = new JTextArea();
+		dialog.getContentPane().add(textArea);
+		
+		
+        dialog.setModal(true);  
+        dialog.pack();  
+        dialog.setVisible(true);  
+    } 
+    
+    
 }

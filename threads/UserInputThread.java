@@ -1,12 +1,14 @@
 package threads;
 
 import datatypes.FileDescriptor;
+import datatypes.RemoteIdentifier;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,11 +19,15 @@ public class UserInputThread extends Thread
 {
     // Multicast definitions
     private MulticastSocket outputMDBSocket;
+    private MulticastSocket outputMCSocket;
 
     public UserInputThread() throws IOException
     {
         outputMDBSocket = new MulticastSocket(MDBThread.multicastPort);
         outputMDBSocket.setTimeToLive(1);
+        
+        outputMCSocket = new MulticastSocket(MCThread.multicastPort);
+        outputMCSocket.setTimeToLive(1);
     }
 
     public void doBackup(String filename, String path, int replicationDegree)
@@ -59,6 +65,19 @@ public class UserInputThread extends Thread
         {
             Logger.getLogger(UserInputThread.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    /*to send Delete Messages*/
+    public void sendDeleteMessage(String filename_encoded) throws IOException{
+    	
+    	String toDelete_message = "DELETE " + filename_encoded + "\r\n\r\n";
+    	
+    	InetAddress MCAddress = InetAddress.getByName(MCThread.multicastAddress);
+    	
+    	/*send toDelete_message*/
+    	outputMCSocket.send(new DatagramPacket(toDelete_message.getBytes(), toDelete_message.length(), MCAddress, MCThread.multicastPort));
+    	
+    	
     }
 
     @Override
