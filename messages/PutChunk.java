@@ -31,7 +31,7 @@ public class PutChunk
 
         // Getting the contents of the chunk to include in the message
         chunkData = FileDescriptor.readFile(pathToChunk);
-        
+
         // Setting the protocol version and replication degree used
         this.protocolVersion = protocolVersion;
         this.replicationDegree = Math.min(replicationDegree, 9); // maximum replication degree is 9
@@ -62,7 +62,7 @@ public class PutChunk
     public String toString()
     {
         return "PUTCHUNK " + protocolVersion + " " + fileId + " "
-               + chunkNo + " " + replicationDegree + " "
+               + chunkNo + " " + replicationDegree
                + "\r\n" + "\r\n" + chunkData.toString();
     }
 
@@ -78,7 +78,13 @@ public class PutChunk
         String protocolVersion = splittedMsg[1];
         String fileID = splittedMsg[2];
         String chunkNo = splittedMsg[3];
-        int replicationDegree = Integer.decode((String) splittedMsg[4]);
+
+        StringBuilder replicationDegreeBuilder = new StringBuilder();
+        for (int i = 0; i < 1; i++)
+        {
+            replicationDegreeBuilder.append(splittedMsg[4].charAt(i));
+        }
+        int replicationDegree = Integer.decode(replicationDegreeBuilder.toString());
 
         if (Float.parseFloat(protocolVersion) < 1.0 || fileID.length() != 64 || Integer.parseInt(chunkNo) < 0 || Integer.parseInt(chunkNo) > 999999)
         {
@@ -88,26 +94,21 @@ public class PutChunk
         StringBuilder temp = new StringBuilder("");
         String chunkData = null;
 
-        // Cycle to ignore unknown header stuff
-        for (int i = 5; i < splittedMsg.length; i++)
+        if (splittedMsg[4].charAt(1) == '\r'
+            && splittedMsg[4].charAt(2) == '\n'
+            && splittedMsg[4].charAt(3) == '\r'
+            && splittedMsg[4].charAt(4) == '\n')
         {
-            if (splittedMsg[i].charAt(0) == '\r'
-                && splittedMsg[i].charAt(1) == '\n'
-                && splittedMsg[i].charAt(2) == '\r'
-                && splittedMsg[i].charAt(3) == '\n')
+            for (int k = 10; k < splittedMsg[4].length(); k++)
             {
-                for (int k = 4; k < splittedMsg[i].length(); k++)
-                {
-                    temp.append(splittedMsg[i].charAt(k));
-                }
+                temp.append(splittedMsg[4].charAt(k));
+            }
 
-                i++;
-                for (; i < splittedMsg.length; i++)
+            for (int i = 5; i < splittedMsg.length; i++)
+            {
                 {
-                    {
-                        temp.append(" ");
-                        temp.append(splittedMsg[i]);
-                    }
+                    temp.append(" ");
+                    temp.append(splittedMsg[i]);
                 }
             }
 
