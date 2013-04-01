@@ -115,6 +115,7 @@ public class UserInputThread extends Thread
         {
             GetChunk msg = new GetChunk(r.getFilenameHash(), r.getNumber());
             outputMCSocket.send(new DatagramPacket(msg.toString().getBytes(),msg.toString().getBytes().length));
+            
         }
         
         

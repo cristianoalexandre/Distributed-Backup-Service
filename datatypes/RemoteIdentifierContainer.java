@@ -47,4 +47,9 @@ public class RemoteIdentifierContainer implements Serializable
         
         return ris;
     }
+    
+    public boolean hasIdentifier(RemoteIdentifier ri)
+    {  
+        return remoteChunks.contains(ri);
+    }
 }

@@ -1,5 +1,6 @@
 package threads;
 
+import datatypes.FileDescriptor;
 import datatypes.RemoteIdentifierContainer;
 import datatypes.RemoteIdentifier;
 import exceptions.InvalidMessageArguments;
@@ -12,15 +13,12 @@ import java.net.MulticastSocket;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import messages.Chunk;
+import messages.GetChunk;
 import messages.Stored;
 
 public class MCThread extends Thread
 {
-    // Message types
-    private final static int storedMsg = 0;
-    private final static int getchunkMsg = 1;
-    private final static int deleteMsg = 2;
-    private final static int removedMsg = 3;
     // Multicast definitions
     public static final String multicastAddress = "237.1.7.4";
     public static final int multicastPort = 4006;
@@ -28,11 +26,13 @@ public class MCThread extends Thread
     // Random number generator
     private Random rgen;
     public static RemoteIdentifierContainer remoteChunks;
+    // Boolean flag to control Chunk answers
+    private boolean neededChunk = false;
 
     public MCThread() throws IOException
     {
         remoteChunks = new RemoteIdentifierContainer();
-        
+
         rgen = new Random();
 
         inputSocket = new MulticastSocket(MCThread.multicastPort);
@@ -64,7 +64,7 @@ public class MCThread extends Thread
             {
                 parseMsg(receivedPacket);
             }
-            catch (InvalidMessageArguments ex)
+            catch (InvalidMessageArguments | IOException ex)
             {
                 Logger.getLogger(MCThread.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -77,19 +77,36 @@ public class MCThread extends Thread
      * @param receivedMsg
      * @return
      */
-    private int parseMsg(DatagramPacket receivedPacket) throws InvalidMessageArguments
+    private int parseMsg(DatagramPacket receivedPacket) throws InvalidMessageArguments, IOException
     {
         String[] msgArray = new String(receivedPacket.getData()).split(" ");
 
         switch (msgArray[0])
         {
             case "STORED":
-                Stored msg = Stored.parseMsg(new String(receivedPacket.getData()));
-                RemoteIdentifier ri = new RemoteIdentifier(msg.getFileID(), msg.getChunkNo(), receivedPacket.getAddress().toString());
+                Stored storedMsg = Stored.parseMsg(new String(receivedPacket.getData()));
+                RemoteIdentifier ri = new RemoteIdentifier(storedMsg.getFileID(), storedMsg.getChunkNo(), receivedPacket.getAddress().toString());
                 MCThread.addRemoteIdentifier(ri);
                 FileChooserFrame.log.append("Added " + ri.toString());
                 break;
             case "GETCHUNK":
+                GetChunk getChunkMsg = GetChunk.parseMsg(new String(receivedPacket.getData()));
+
+                // Does the message apply to me?
+                if (remoteChunks.hasIdentifier(new RemoteIdentifier(getChunkMsg.getFileID(), getChunkMsg.getChunkNo(), inputSocket.getLocalAddress().toString())))
+                {
+                    if (receivedPacket.getSocketAddress().toString().equals(inputSocket.getLocalAddress()))
+                    {
+                        // Someone needs a chunk, start the loop!
+                        neededChunk = true;
+                        new MCChunkThread(getChunkMsg).start();
+                    }
+                    else
+                    {
+                        // Someone was faster to answer than us, disable the loop.
+                        neededChunk = false;
+                    }
+                }
 
                 break;
             case "DELETE":
@@ -106,5 +123,44 @@ public class MCThread extends Thread
     public static void addRemoteIdentifier(RemoteIdentifier ri)
     {
         remoteChunks.addRemoteIdentifier(ri);
+    }
+
+    public class MCChunkThread extends Thread
+    {
+        private GetChunk chunkMsg;
+        private String chunkData;
+
+        public MCChunkThread(GetChunk chunkMsg) throws IOException
+        {
+            this.chunkMsg = chunkMsg;
+
+            // Time to get the chunk contents, then.
+            chunkData = FileDescriptor.readFile(FileDescriptor.receivedChunkDir + "/" + chunkMsg.getFileID() + "_" + chunkMsg.getChunkNo());
+        }
+
+        @Override
+        public void run()
+        {
+            try
+            {
+                // Wait random time between 0 and 400ms.
+                int waitTime = rgen.nextInt(400);
+                Thread.sleep(waitTime);
+
+                // Finally, answer the query, if nobody has answered yet.
+                if (neededChunk)
+                {
+                    Chunk msg = new Chunk(chunkMsg.getFileID(), chunkMsg.getProtocolVersion(), chunkMsg.getChunkNo(), chunkData);
+
+                    inputSocket.send(new DatagramPacket(msg.toString().getBytes(), msg.toString().getBytes().length));
+
+                    neededChunk = false;
+                }
+            }
+            catch (InterruptedException | IOException ex)
+            {
+                Logger.getLogger(MCThread.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }
 }
