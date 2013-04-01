@@ -14,9 +14,9 @@ import java.security.NoSuchAlgorithmException;
 
 public class FileDescriptor extends File
 {
-    public static final String backupDir = "./Backup";
-    public static final String receivedChunkDir = "./RecvChunk";
-    public static final String sentChunkDir = backupDir + "/SentChunk";
+    public static final String backupDir = "./backup";
+    public static final String receivedChunkDir = "./stored";
+    public static final String sentChunkDir = backupDir + "/sent";
     public static final String configDir = "./config";
     public static final int chunkSize = 64000; // 64KB
     private String SHA256filenameHash;
@@ -28,7 +28,7 @@ public class FileDescriptor extends File
     public FileDescriptor(String filename) throws NoSuchAlgorithmException
     {
         super(filename);
-        SHA256filenameHash = filename2Hash(filename);
+        SHA256filenameHash = filename2Hash(this.getName());
     }
 
     /**

@@ -80,10 +80,7 @@ public class PutChunk
         String chunkNo = splittedMsg[3];
 
         StringBuilder replicationDegreeBuilder = new StringBuilder();
-        for (int i = 0; i < 1; i++)
-        {
-            replicationDegreeBuilder.append(splittedMsg[4].charAt(i));
-        }
+        replicationDegreeBuilder.append(splittedMsg[4].charAt(0));
         int replicationDegree = Integer.decode(replicationDegreeBuilder.toString());
 
         if (Float.parseFloat(protocolVersion) < 1.0 || fileID.length() != 64 || Integer.parseInt(chunkNo) < 0 || Integer.parseInt(chunkNo) > 999999)
