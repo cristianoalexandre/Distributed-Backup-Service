@@ -3,7 +3,6 @@ package datatypes;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 public class RemoteIdentifierContainer implements Serializable
@@ -32,5 +31,20 @@ public class RemoteIdentifierContainer implements Serializable
     public void addRemoteIdentifier(RemoteIdentifier ri)
     {
         remoteChunks.add(ri);
+    }
+    
+    public Set<RemoteIdentifier> getIdentifiersByHash(String hashname)
+    {
+        Set<RemoteIdentifier> ris = new HashSet<>();
+        
+        for (RemoteIdentifier r:remoteChunks)
+        {
+            if (r.getFilenameHash().equals(hashname))
+            {
+                ris.add(r);
+            }
+        }
+        
+        return ris;
     }
 }

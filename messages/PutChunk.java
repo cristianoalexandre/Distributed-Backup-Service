@@ -96,7 +96,7 @@ public class PutChunk
             && splittedMsg[4].charAt(3) == '\r'
             && splittedMsg[4].charAt(4) == '\n')
         {
-            for (int k = 10; k < splittedMsg[4].length(); k++)
+            for (int k = 5; k < splittedMsg[4].length(); k++)
             {
                 temp.append(splittedMsg[4].charAt(k));
             }

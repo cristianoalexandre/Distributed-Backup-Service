@@ -59,7 +59,6 @@ public class Stored
             legalCRLFseq = true;
         }
 
-
         if (!legalCRLFseq)
         {
             throw new InvalidMessageArguments();

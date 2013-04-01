@@ -4,6 +4,7 @@ import datatypes.FileDescriptor;
 import datatypes.LocalIdentifier;
 import datatypes.LocalIdentifierContainer;
 import datatypes.RemoteIdentifier;
+import exceptions.InvalidFile;
 import exceptions.MaxAttemptsReached;
 import gui.FileChooserFrame;
 
@@ -13,6 +14,8 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.security.NoSuchAlgorithmException;
+import java.util.Set;
+import messages.GetChunk;
 
 import messages.PutChunk;
 
@@ -83,8 +86,41 @@ public class UserInputThread extends Thread
         localFiles.addLocalIdentifier(new LocalIdentifier(pc.getFileId(), filename, Integer.toString(pc.getReplicationDegree())));
         FileChooserFrame.log.append("==== Finished. ====");
     }
-    /*to send Delete Messages*/
 
+    public void doRestore(String filename) throws InvalidFile, IOException
+    {
+        // First, search the filename on local files
+        LocalIdentifier lfile = localFiles.getIdentifierByFilename(filename);
+        String hashname;
+
+        if (lfile != null)
+        {
+            hashname = lfile.getFilenameHash();
+        }
+        else
+        {
+            throw new InvalidFile();
+        }
+
+        // Now, get the related chunk identifiers
+        Set<RemoteIdentifier> ris = MCThread.remoteChunks.getIdentifiersByHash(hashname);
+
+        if (ris.isEmpty())
+        {
+            throw new InvalidFile();
+        }
+
+        // For each identifier, send a GETCHUNK msg to the MC channel
+        for (RemoteIdentifier r : ris)
+        {
+            GetChunk msg = new GetChunk(r.getFilenameHash(), r.getNumber());
+            outputMCSocket.send(new DatagramPacket(msg.toString().getBytes(),msg.toString().getBytes().length));
+        }
+        
+        
+    }
+
+    /*to send Delete Messages*/
     public void sendDeleteMessage(String filename_encoded) throws IOException
     {
         String toDelete_message = "DELETE " + filename_encoded + "\r\n\r\n";

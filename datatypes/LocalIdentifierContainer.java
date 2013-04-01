@@ -17,4 +17,15 @@ public class LocalIdentifierContainer
     {
         localFiles.add(l);
     }
+    
+    public LocalIdentifier getIdentifierByFilename(String filename)
+    {
+        for (LocalIdentifier l: localFiles)
+        {
+            if (l.getFilenameReal().equals(filename))
+                return l;
+        }
+        
+        return null;
+    }
 }
