@@ -1,5 +1,8 @@
 package threads;
 
+import datatypes.RemoteIdentifierContainer;
+import datatypes.RemoteIdentifier;
+import exceptions.InvalidMessageArguments;
 import gui.FileChooserFrame;
 
 import java.io.IOException;
@@ -9,6 +12,7 @@ import java.net.MulticastSocket;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import messages.Stored;
 
 public class MCThread extends Thread
 {
@@ -23,11 +27,14 @@ public class MCThread extends Thread
     private MulticastSocket inputSocket;
     // Random number generator
     private Random rgen;
+    public static RemoteIdentifierContainer remoteChunks;
 
     public MCThread() throws IOException
     {
-        rgen = new Random();
+        remoteChunks = new RemoteIdentifierContainer();
         
+        rgen = new Random();
+
         inputSocket = new MulticastSocket(MCThread.multicastPort);
         inputSocket.setTimeToLive(1);
         inputSocket.joinGroup(InetAddress.getByName(multicastAddress));
@@ -53,6 +60,14 @@ public class MCThread extends Thread
             String msgReceived = new String(receivedPacket.getData());
 
             FileChooserFrame.log.append("MC - Received: " + msgReceived + "\n");
+            try
+            {
+                parseMsg(receivedPacket);
+            }
+            catch (InvalidMessageArguments ex)
+            {
+                Logger.getLogger(MCThread.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
 
@@ -62,14 +77,17 @@ public class MCThread extends Thread
      * @param receivedMsg
      * @return
      */
-    private int parseMsg(String receivedMsg)
+    private int parseMsg(DatagramPacket receivedPacket) throws InvalidMessageArguments
     {
-        String[] msgArray = receivedMsg.split(" ");
+        String[] msgArray = new String(receivedPacket.getData()).split(" ");
 
         switch (msgArray[0])
         {
             case "STORED":
-
+                Stored msg = Stored.parseMsg(new String(receivedPacket.getData()));
+                RemoteIdentifier ri = new RemoteIdentifier(msg.getFileID(), msg.getChunkNo(), receivedPacket.getAddress().toString());
+                MCThread.addRemoteIdentifier(ri);
+                FileChooserFrame.log.append("Added " + ri.toString());
                 break;
             case "GETCHUNK":
 
@@ -83,5 +101,10 @@ public class MCThread extends Thread
         }
 
         return 0;
+    }
+
+    public static void addRemoteIdentifier(RemoteIdentifier ri)
+    {
+        remoteChunks.addRemoteIdentifier(ri);
     }
 }

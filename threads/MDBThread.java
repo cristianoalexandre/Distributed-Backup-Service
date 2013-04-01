@@ -55,7 +55,7 @@ public class MDBThread extends Thread
 
                 String msgReceived = new String(receivePacket.getData());
 
-                FileChooserFrame.log.append("MDB - Received: " + msgReceived + "\n");
+                //FileChooserFrame.log.append("MDB - Received: " + msgReceived + "\n");
 
                 switch (msgReceived.split(" ")[0])
                 {
@@ -74,11 +74,12 @@ public class MDBThread extends Thread
     private void sendStored(PutChunk msgReceived) throws IOException
     {
         Stored st = new Stored(msgReceived.getFileId(), msgReceived.getChunkNo());
-        MulticastSocket outputSocket = new MulticastSocket(MCThread.multicastPort);
-        outputSocket.setTimeToLive(1);
-        InetAddress MCAddress = InetAddress.getByName(MCThread.multicastAddress);
-        outputSocket.send(new DatagramPacket(st.toString().getBytes(), st.toString().length(), MCAddress, MCThread.multicastPort));
-        outputSocket.close();
+        try (MulticastSocket outputSocket = new MulticastSocket(MCThread.multicastPort))
+        {
+            outputSocket.setTimeToLive(1);
+            InetAddress MCAddress = InetAddress.getByName(MCThread.multicastAddress);
+            outputSocket.send(new DatagramPacket(st.toString().getBytes(), st.toString().length(), MCAddress, MCThread.multicastPort));
+        }
         
         FileChooserFrame.log.append("MDB - Sent: " + st + "\n");
     }
@@ -153,14 +154,10 @@ public class MDBThread extends Thread
                     mcSocket.receive(receivePacket);
                     String receivedMsg = new String(receivePacket.getData());
                     
-                    FileChooserFrame.log.append("MDB - Received (MC Channel): " + receivedMsg + "\n");
+                    //FileChooserFrame.log.append("MDB - Received (MC Channel): " + receivedMsg + "\n");
                     
                     // Checking if the message is a STORED and matches our file
-                    String[] splitMsg = receivedMsg.split(" ");
-                    if (splitMsg[0].equals("STORED"))
-                    {
-                        
-                    }
+
                     
                     storedHosts.add(receivePacket.getAddress().toString());
                 }

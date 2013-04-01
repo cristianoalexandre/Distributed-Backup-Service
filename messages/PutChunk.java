@@ -101,7 +101,6 @@ public class PutChunk
                     temp.append(splittedMsg[i].charAt(k));
                 }
 
-               
                 i++;
                 for (; i < splittedMsg.length; i++)
                 {
@@ -110,8 +109,6 @@ public class PutChunk
                         temp.append(splittedMsg[i]);
                     }
                 }
-
-               
             }
 
             chunkData = temp.toString();

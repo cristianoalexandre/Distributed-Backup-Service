@@ -30,14 +30,20 @@ public class Stored
     {
         String[] splittedMsg = msg.split(" ");
 
-        if (splittedMsg.length < 5)
+        if (splittedMsg.length < 4)
         {
             throw new InvalidMessageArguments();
         }
 
         String protocolVersion = splittedMsg[1];
         String fileID = splittedMsg[2];
-        String chunkNo = splittedMsg[3];
+
+        StringBuilder chunkNoBuilder = new StringBuilder();
+        for (int i = 0; i < 6; i++)
+        {
+            chunkNoBuilder.append(splittedMsg[3].charAt(i));
+        }
+        String chunkNo = chunkNoBuilder.toString();
 
         if (Float.parseFloat(protocolVersion) < 1.0 || fileID.length() != 64 || Integer.parseInt(chunkNo) < 0 || Integer.parseInt(chunkNo) > 999999)
         {
@@ -45,13 +51,14 @@ public class Stored
         }
 
         boolean legalCRLFseq = false;
-        for (int i = 4; i < splittedMsg.length; i++)
+        if (splittedMsg[3].charAt(6) == '\r'
+            && splittedMsg[3].charAt(7) == '\n'
+            && splittedMsg[3].charAt(8) == '\r'
+            && splittedMsg[3].charAt(9) == '\n')
         {
-            if (splittedMsg[i].equals("\r\n\r\n"))
-            {
-                legalCRLFseq = true;
-            }
+            legalCRLFseq = true;
         }
+
 
         if (!legalCRLFseq)
         {

@@ -4,22 +4,15 @@ import java.util.Objects;
 
 public class RemoteIdentifier implements java.io.Serializable
 {
-    private String filename;
     private String filenameHash;
     private String number;
     private String host;
 
-    public RemoteIdentifier(String filename, String filenameHash, String number, String host)
+    public RemoteIdentifier(String filenameHash, String number, String host)
     {
-        this.filename = filename;
         this.filenameHash = filenameHash;
         this.number = number;
         this.host = host;
-    }
-
-    public String getFilename()
-    {
-        return filename;
     }
 
     public String getFilenameHash()
@@ -46,17 +39,35 @@ public class RemoteIdentifier implements java.io.Serializable
         
         return (r.getNumber().equals(this.getNumber())
                 && r.getHost().equals(this.getHost())
-                && r.getFilename().equals(this.getFilename()));
+                && r.getFilenameHash().equals(this.getFilenameHash()));
+    }
+    
+    public boolean sameChunkAs(RemoteIdentifier r)
+    {
+        return (r.getNumber().equals(this.getNumber())
+                && r.getFilenameHash().equals(this.getFilenameHash())); 
     }
 
+    @Override
+    public String toString()
+    {
+        return "RI: "+getFilenameHash()+" - "+getNumber()+" - "+getHost();
+    }
+
+    
+    
     @Override
     public int hashCode()
     {
         int hash = 7;
-        hash = 83 * hash + Objects.hashCode(this.filename);
         hash = 83 * hash + Objects.hashCode(this.filenameHash);
         hash = 83 * hash + Objects.hashCode(this.number);
         hash = 83 * hash + Objects.hashCode(this.host);
         return hash;
+    }
+
+    public Object getFilename()
+    {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

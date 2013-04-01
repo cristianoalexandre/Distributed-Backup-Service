@@ -23,4 +23,19 @@ public class GetChunk
     {
         return "GETCHUNK "+protocolVersion+" "+fileID+" "+chunkNo+"\r\n\r\n";
     }
+
+    public String getChunkNo()
+    {
+        return chunkNo;
+    }
+
+    public String getFileID()
+    {
+        return fileID;
+    }
+
+    public String getProtocolVersion()
+    {
+        return protocolVersion;
+    }
 }

@@ -1,7 +1,6 @@
 package gui;
 
-import datatypes.FileDescriptor;
-import datatypes.RemoteIdentifier;
+import exceptions.MaxAttemptsReached;
 import threads.MDRThread;
 import threads.MDBThread;
 import threads.MCThread;
@@ -10,10 +9,8 @@ import java.io.*;
 import java.security.NoSuchAlgorithmException;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.*;
 
 public class FileChooserFrame extends JPanel implements ActionListener
@@ -22,24 +19,18 @@ public class FileChooserFrame extends JPanel implements ActionListener
     private MDBThread mdb;
     private MDRThread mdr;
     private UserInputThread input;
-    
     private JButton openButton, restoreButton;
     public static JTextArea log;
     private JFileChooser fc;
     private JComboBox comboBox;
     private JLabel lblNumberOfCopies;
     private JButton btnDelete;
-    
     static private final String newline = "\n";
-    
-    private static Set<RemoteIdentifier> remoteChunks;
 
     public FileChooserFrame() throws IOException
     {
         super(new BorderLayout());
 
-        remoteChunks = Collections.synchronizedSet(new HashSet<RemoteIdentifier>());
-        
         //Create the log first, because the action listeners
         //need to refer to it.
         log = new JTextArea(5, 20);
@@ -66,10 +57,10 @@ public class FileChooserFrame extends JPanel implements ActionListener
             @Override
             public void mouseClicked(MouseEvent e)
             {
-            	openRestoreDialog();
+                openRestoreDialog();
                 /*RestoreFrame restoreFrame = new RestoreFrame();
-                restoreFrame.setVisible(true);
-                restoreFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);*/
+                 restoreFrame.setVisible(true);
+                 restoreFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);*/
             }
         });
 
@@ -108,10 +99,10 @@ public class FileChooserFrame extends JPanel implements ActionListener
             @Override
             public void mouseClicked(MouseEvent e)
             {
-            	openDeleteDialog();
+                openDeleteDialog();
                 /*DeleteFrame deleteFrame = new DeleteFrame();
-                deleteFrame.setVisible(true);
-                deleteFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);*/
+                 deleteFrame.setVisible(true);
+                 deleteFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);*/
             }
         });
         buttonPanel.add(btnDelete);
@@ -140,11 +131,27 @@ public class FileChooserFrame extends JPanel implements ActionListener
 
             if (returnVal == JFileChooser.APPROVE_OPTION)
             {
-                File file = fc.getSelectedFile();
+                final File file = fc.getSelectedFile();
                 //This is where a real application would open the file.
                 log.append("Uploading: " + file.getName() + "." + newline + "Num of copies: " + comboBox.getSelectedItem() + newline);
 
-                input.doBackup(file.getName(), file.getPath(), Integer.decode((String) comboBox.getSelectedItem()));
+
+                new Thread()
+                {
+                    @Override
+                    public void run()
+                    {
+                        try
+                        {
+                            input.doBackup(file.getName(), file.getPath(), Integer.decode((String) comboBox.getSelectedItem()));
+                        }
+                        catch (InterruptedException | IOException | NoSuchAlgorithmException | MaxAttemptsReached ex)
+                        {
+                            Logger.getLogger(FileChooserFrame.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }.start();
+
 
             }
             log.setCaretPosition(log.getDocument().getLength());
@@ -228,104 +235,103 @@ public class FileChooserFrame extends JPanel implements ActionListener
             }
         });
     }
-    
-    public static void addRemoteIdentifier(RemoteIdentifier ri)
-    {
-        remoteChunks.add(ri);
-    }
-    
-    /*Deletes a File on network, if it exists*/
-    public void deleteFile(String filename) throws NoSuchAlgorithmException, IOException{
-    	
-    	FileDescriptor toDelete = new FileDescriptor(filename);
-    	
-    	String hash = toDelete.getSHA256filenameHash();
-    	
-    	
-    	Iterator it = remoteChunks.iterator();
-    	
-    	//System.out.println(filename);
-    	
-    	while (it.hasNext()) {
-    	 RemoteIdentifier ri = (RemoteIdentifier) it.next();
-    	 
-    	 if(ri.getFilename().equals(filename)){
-    		 input.sendDeleteMessage(hash);
-    	 }else{
-    		
-    	 }
-    	 
-    	}
 
+    /*Deletes a File on network, if it exists*/
+    public void deleteFile(String filename) throws NoSuchAlgorithmException, IOException
+    {
+        /* 	
+         FileDescriptor toDelete = new FileDescriptor(filename);
+    	
+         String hash = toDelete.getSHA256filenameHash();
+    	
+    	
+         Iterator it = MCThread.remoteChunks.iterator();
+    	
+         //System.out.println(filename);
+    	
+         while (it.hasNext()) {
+         RemoteIdentifier ri = (RemoteIdentifier) it.next();
+    	 
+         if(ri.getFilename().equals(filename)){
+         input.sendDeleteMessage(hash);
+         }else{
+    		
+         }
+    	 
+         }
+         */
     }
-    
-    private void openDeleteDialog() {  
+
+    private void openDeleteDialog()
+    {
         JDialog dialog = new JDialog();
         dialog.setTitle("Delete File");
         dialog.setResizable(true);
-        
+
         dialog.getContentPane().setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
         dialog.getContentPane().add(new JLabel("Filename:"));
         final JTextField textField = new JTextField();
-        
+
         JButton btnNewButton = new JButton("Delete it!");
-        btnNewButton.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent arg0){
-				try {
-					deleteFile(textField.getText());
-				} catch (NoSuchAlgorithmException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		});
-		
+        btnNewButton.addMouseListener(new MouseAdapter()
+        {
+            @Override
+            public void mouseClicked(MouseEvent arg0)
+            {
+                try
+                {
+                    deleteFile(textField.getText());
+                }
+                catch (NoSuchAlgorithmException | IOException e)
+                {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        });
+
         dialog.getContentPane().add(textField);
         dialog.getContentPane().add(btnNewButton);
-		textField.setColumns(20);
-		
-		JTextArea textArea = new JTextArea();
-		dialog.getContentPane().add(textArea);
-		
-		
-        dialog.setModal(true);  
-        dialog.pack();  
-        dialog.setVisible(true);  
-    } 
-    
-    private void openRestoreDialog() {  
+        textField.setColumns(20);
+
+        JTextArea textArea = new JTextArea();
+        dialog.getContentPane().add(textArea);
+
+
+        dialog.setModal(true);
+        dialog.pack();
+        dialog.setVisible(true);
+    }
+
+    private void openRestoreDialog()
+    {
         JDialog dialog = new JDialog();
         dialog.setTitle("Restore File");
         dialog.setResizable(true);
-        
+
         dialog.getContentPane().setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
         dialog.getContentPane().add(new JLabel("Filename:"));
         final JTextField textField = new JTextField();
-        
+
         JButton btnNewButton = new JButton("Get it!");
-        btnNewButton.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent arg0){
-			
-			}
-		});
-		
+        btnNewButton.addMouseListener(new MouseAdapter()
+        {
+            @Override
+            public void mouseClicked(MouseEvent arg0)
+            {
+            }
+        });
+
         dialog.getContentPane().add(textField);
         dialog.getContentPane().add(btnNewButton);
-		textField.setColumns(20);
-		
-		JTextArea textArea = new JTextArea();
-		dialog.getContentPane().add(textArea);
-		
-		
-        dialog.setModal(true);  
-        dialog.pack();  
-        dialog.setVisible(true);  
-    } 
-    
-    
+        textField.setColumns(20);
+
+        JTextArea textArea = new JTextArea();
+        dialog.getContentPane().add(textArea);
+
+
+        dialog.setModal(true);
+        dialog.pack();
+        dialog.setVisible(true);
+    }
 }
