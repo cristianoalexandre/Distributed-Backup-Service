@@ -1,5 +1,6 @@
 package gui;
 
+import exceptions.InvalidFile;
 import exceptions.MaxAttemptsReached;
 import threads.MDRThread;
 import threads.MDBThread;
@@ -319,6 +320,12 @@ public class FileChooserFrame extends JPanel implements ActionListener
             @Override
             public void mouseClicked(MouseEvent arg0)
             {
+            	try {
+					input.doRestore(textField.getText());
+				} catch (InvalidFile | IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
             }
         });
 
