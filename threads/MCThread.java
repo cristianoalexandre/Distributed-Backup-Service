@@ -23,6 +23,7 @@ public class MCThread extends Thread
     public static final String multicastAddress = "237.1.7.4";
     public static final int multicastPort = 4006;
     private MulticastSocket inputSocket;
+    private MulticastSocket MDRSocket;
     // Random number generator
     private Random rgen;
     public static RemoteIdentifierContainer remoteChunks;
@@ -38,6 +39,9 @@ public class MCThread extends Thread
         inputSocket = new MulticastSocket(MCThread.multicastPort);
         inputSocket.setTimeToLive(1);
         inputSocket.joinGroup(InetAddress.getByName(multicastAddress));
+        
+        MDRSocket = new MulticastSocket(MDRThread.multicastPort);
+        MDRSocket.setTimeToLive(1);
     }
 
     @Override
@@ -93,12 +97,15 @@ public class MCThread extends Thread
                 GetChunk getChunkMsg = GetChunk.parseMsg(new String(receivedPacket.getData()));
 
                 // Does the message apply to me?
-                if (remoteChunks.hasIdentifier(new RemoteIdentifier(getChunkMsg.getFileID(), getChunkMsg.getChunkNo(), inputSocket.getLocalAddress().toString())))
+                if (remoteChunks.hasIdentifier(new RemoteIdentifier(getChunkMsg.getFileID(), getChunkMsg.getChunkNo(), receivedPacket.getAddress().toString())))
                 {
-                    if (receivedPacket.getSocketAddress().toString().equals(inputSocket.getLocalAddress()))
+                    System.out.println(receivedPacket.getAddress());
+                    System.out.println(InetAddress.getByAddress(InetAddress.getLocalHost().getAddress()));
+                    if (receivedPacket.getAddress().toString().equals(InetAddress.getByAddress(InetAddress.getLocalHost().getAddress()).toString()))
                     {
                         // Someone needs a chunk, start the loop!
                         neededChunk = true;
+                        System.out.println("I have a packet!");
                         new MCChunkThread(getChunkMsg).start();
                     }
                     else
@@ -134,8 +141,10 @@ public class MCThread extends Thread
         {
             this.chunkMsg = chunkMsg;
 
+            System.out.println(FileDescriptor.receivedChunkDir + "/" + chunkMsg.getFileID() + "/"+ chunkMsg.getFileID() + "_" + chunkMsg.getChunkNo());
+            
             // Time to get the chunk contents, then.
-            chunkData = FileDescriptor.readFile(FileDescriptor.receivedChunkDir + "/" + chunkMsg.getFileID() + "_" + chunkMsg.getChunkNo());
+            chunkData = FileDescriptor.readFile(FileDescriptor.receivedChunkDir + "/" + chunkMsg.getFileID() + "/"+ chunkMsg.getFileID() + "_" + chunkMsg.getChunkNo());
         }
 
         @Override
@@ -152,7 +161,7 @@ public class MCThread extends Thread
                 {
                     Chunk msg = new Chunk(chunkMsg.getFileID(), chunkMsg.getProtocolVersion(), chunkMsg.getChunkNo(), chunkData);
 
-                    inputSocket.send(new DatagramPacket(msg.toString().getBytes(), msg.toString().getBytes().length));
+                    MDRSocket.send(new DatagramPacket(msg.toString().getBytes(), msg.toString().getBytes().length, InetAddress.getByName(MDRThread.multicastAddress),MDRThread.multicastPort));
 
                     neededChunk = false;
                 }

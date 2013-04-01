@@ -114,11 +114,8 @@ public class UserInputThread extends Thread
         for (RemoteIdentifier r : ris)
         {
             GetChunk msg = new GetChunk(r.getFilenameHash(), r.getNumber());
-            outputMCSocket.send(new DatagramPacket(msg.toString().getBytes(),msg.toString().getBytes().length));
-            
+            outputMCSocket.send(new DatagramPacket(msg.toString().getBytes(),msg.toString().getBytes().length, InetAddress.getByName(MCThread.multicastAddress), MCThread.multicastPort));          
         }
-        
-        
     }
 
     /*to send Delete Messages*/

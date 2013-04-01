@@ -124,7 +124,6 @@ public class FileChooserFrame extends JPanel implements ActionListener
 
     public void actionPerformed(ActionEvent e)
     {
-
         //Handle open button action.
         if (e.getSource() == openButton)
         {
@@ -279,15 +278,21 @@ public class FileChooserFrame extends JPanel implements ActionListener
             @Override
             public void mouseClicked(MouseEvent arg0)
             {
-                try
+                new Thread()
                 {
-                    deleteFile(textField.getText());
-                }
-                catch (NoSuchAlgorithmException | IOException e)
-                {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
+                    @Override
+                    public void run()
+                    {
+                        try
+                        {
+                            deleteFile(textField.getText());
+                        }
+                        catch (NoSuchAlgorithmException | IOException ex)
+                        {
+                            Logger.getLogger(FileChooserFrame.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }.start();
             }
         });
 
@@ -320,12 +325,22 @@ public class FileChooserFrame extends JPanel implements ActionListener
             @Override
             public void mouseClicked(MouseEvent arg0)
             {
-            	try {
-					input.doRestore(textField.getText());
-				} catch (InvalidFile | IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+                new Thread()
+                {
+                    @Override
+                    public void run()
+                    {
+                        try
+                        {
+                            input.doRestore(textField.getText());
+                        }
+                        catch (InvalidFile | IOException ex)
+                        {
+                            Logger.getLogger(FileChooserFrame.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }.start();
+
             }
         });
 

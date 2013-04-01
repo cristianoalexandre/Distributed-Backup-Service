@@ -28,4 +28,15 @@ public class LocalIdentifierContainer
         
         return null;
     }
+    
+    public LocalIdentifier getIdentifierByFilehash(String filehash)
+    {
+        for (LocalIdentifier l: localFiles)
+        {
+            if (l.getFilenameHash().equals(filehash))
+                return l;
+        }
+        
+        return null;
+    }
 }

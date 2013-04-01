@@ -24,6 +24,26 @@ public class Chunk
         return "CHUNK " + protocolVersion + " " + fileID + " " + chunkNo + "\r\n\r\n" + chunkData;
     }
 
+    public String getChunkData()
+    {
+        return chunkData;
+    }
+
+    public String getChunkNo()
+    {
+        return chunkNo;
+    }
+
+    public String getFileID()
+    {
+        return fileID;
+    }
+
+    public String getProtocolVersion()
+    {
+        return protocolVersion;
+    }
+    
     public static Chunk parseMsg(String msg) throws InvalidMessageArguments
     {
         String[] splittedMsg = msg.trim().split(" ");
