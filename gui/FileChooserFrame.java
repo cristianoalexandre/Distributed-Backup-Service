@@ -69,10 +69,6 @@ public class FileChooserFrame extends JPanel implements ActionListener
                  restoreFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);*/
             }
         });
-        
-        
-        
-
 
         //For layout purposes, put the buttons in a separate panel
         JPanel buttonPanel = new JPanel(); //use FlowLayout
@@ -117,22 +113,27 @@ public class FileChooserFrame extends JPanel implements ActionListener
         buttonPanel.add(btnDelete);
         add(logScrollPane, BorderLayout.CENTER);
 
+        RemoteIdentifierContainer r;
 
-        mc = new MCThread(RemoteIdentifierContainer.load());
+        if (new File(FileDescriptor.remoteChunkContainerFile).exists())
+        {
+            r = RemoteIdentifierContainer.load();
+        }
+        else
+        {
+            r = new RemoteIdentifierContainer();
+        }
+        
+        mc = new MCThread(r);
         mdb = new MDBThread();
         mdr = new MDRThread();
         input = new UserInputThread();
 
-        
-        
         // Initiating multicast channel threads
         mc.start();
         mdb.start();
         mdr.start();
         input.start();
-        
-        
- 
     }
 
     public void actionPerformed(ActionEvent e)
@@ -193,19 +194,28 @@ public class FileChooserFrame extends JPanel implements ActionListener
      * Create the GUI and show it. For thread safety, this method should be invoked from the event dispatch thread.
      *
      * @throws IOException
-     * @throws ClassNotFoundException 
+     * @throws ClassNotFoundException
      */
     private static void createAndShowGUI() throws IOException, ClassNotFoundException
     {
         //Create and set up the window.
         JFrame frame = new JFrame("Backup ME");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        
-        frame.addWindowListener(new WindowAdapter(){
-        	@Override
-        	public void windowClosing(WindowEvent ev){
-        		MCThread.remoteChunks.save();
-        	}
+
+        frame.addWindowListener(new WindowAdapter()
+        {
+            @Override
+            public void windowClosing(WindowEvent ev)
+            {
+                try
+                {
+                    MCThread.remoteChunks.save();
+                }
+                catch (IOException ex)
+                {
+                    Logger.getLogger(FileChooserFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
         });
 
         //Add content to the window.
@@ -225,6 +235,8 @@ public class FileChooserFrame extends JPanel implements ActionListener
         File backupFolder = new File(datatypes.FileDescriptor.backupDir);
         File receivedChunkFolder = new File(datatypes.FileDescriptor.receivedChunkDir);
         File sentChunkFolder = new File(datatypes.FileDescriptor.sentChunkDir);
+        File configFolder = new File(datatypes.FileDescriptor.configDir);
+        File recoveryFolder = new File(datatypes.FileDescriptor.recoveredDir);
 
         if (!backupFolder.exists())
         {
@@ -238,6 +250,14 @@ public class FileChooserFrame extends JPanel implements ActionListener
         {
             sentChunkFolder.mkdir();
         }
+        if (!configFolder.exists())
+        {
+            configFolder.mkdir();
+        }
+        if (!recoveryFolder.exists())
+        {
+            recoveryFolder.mkdir();
+        }
 
         SwingUtilities.invokeLater(new Runnable()
         {
@@ -249,14 +269,11 @@ public class FileChooserFrame extends JPanel implements ActionListener
                 {
                     createAndShowGUI();
                 }
-                catch (IOException e)
+                catch (IOException | ClassNotFoundException e)
                 {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
-                } catch (ClassNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+                }
             }
         });
     }
@@ -265,17 +282,19 @@ public class FileChooserFrame extends JPanel implements ActionListener
     public void deleteFile(String filename) throws NoSuchAlgorithmException, IOException
     {
         RemoteIdentifierContainer ric = MCThread.remoteChunks;
-        
+
         String encoded_filename = FileDescriptor.filename2Hash(filename);
         Set<RemoteIdentifier> set = ric.getIdentifiersByHash(encoded_filename);
-        
+
         /*Only sends Delete Message if we really are the initiator-peer*/
-        if(set.isEmpty()){
+        if (set.isEmpty())
+        {
             FileChooserFrame.log.append("Unnable to Delete File. It doesn't exist or you don't have permission to Delete it.\n");
-        }else{
+        }
+        else
+        {
             input.sendDeleteMessage(encoded_filename);
         }
-         
     }
 
     private void openDeleteDialog()
@@ -335,9 +354,12 @@ public class FileChooserFrame extends JPanel implements ActionListener
             @Override
             public void mouseClicked(MouseEvent arg0)
             {
-                try {
+                try
+                {
                     input.doRestore(textField.getText());
-                } catch (InvalidFile | IOException e) {
+                }
+                catch (InvalidFile | IOException e)
+                {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
@@ -356,19 +378,21 @@ public class FileChooserFrame extends JPanel implements ActionListener
         dialog.pack();
         dialog.setVisible(true);
     }
-    
-    public void loadRemoteIdentifiers() throws FileNotFoundException{
+
+    public void loadRemoteIdentifiers() throws FileNotFoundException
+    {
         Scanner in = new Scanner(new FileReader("./config/remoteIdentifiers.txt"));
 
-        while (in.hasNextLine()) {
+        while (in.hasNextLine())
+        {
             String line1 = in.nextLine();
             String line2 = in.nextLine();
             String line3 = in.nextLine();
-            MCThread.addRemoteIdentifier(new RemoteIdentifier(line1,line2,line3));
+            MCThread.addRemoteIdentifier(new RemoteIdentifier(line1, line2, line3));
         }
-        
+
         log.append("RemoteIdentifiers successfully loaded...\n");
-        
+
         in.close();
     }
 }

@@ -19,6 +19,8 @@ public class FileDescriptor extends File
     public static final String sentChunkDir = backupDir + "/sent";
     public static final String configDir = "./config";
     public static final String recoveredDir = "./recovered";
+    public static final String localChunkContainerFile = configDir + "/localcontainer.cfg";
+    public static final String remoteChunkContainerFile = configDir + "/remotecontainer.cfg";
     public static final int chunkSize = 64000; // 64KB
     private String SHA256filenameHash;
 
