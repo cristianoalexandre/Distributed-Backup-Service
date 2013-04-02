@@ -10,9 +10,14 @@ import java.io.*;
 import java.security.NoSuchAlgorithmException;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Scanner;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
+import datatypes.RemoteIdentifier;
+import datatypes.RemoteIdentifierContainer;
+import datatypes.FileDescriptor;
 
 public class FileChooserFrame extends JPanel implements ActionListener
 {
@@ -115,15 +120,20 @@ public class FileChooserFrame extends JPanel implements ActionListener
         mdr = new MDRThread();
         input = new UserInputThread();
 
+        loadRemoteIdentifiers();
+        
         // Initiating multicast channel threads
         mc.start();
         mdb.start();
         mdr.start();
         input.start();
+        
+ 
     }
 
     public void actionPerformed(ActionEvent e)
     {
+
         //Handle open button action.
         if (e.getSource() == openButton)
         {
@@ -239,27 +249,18 @@ public class FileChooserFrame extends JPanel implements ActionListener
     /*Deletes a File on network, if it exists*/
     public void deleteFile(String filename) throws NoSuchAlgorithmException, IOException
     {
-        /* 	
-         FileDescriptor toDelete = new FileDescriptor(filename);
-    	
-         String hash = toDelete.getSHA256filenameHash();
-    	
-    	
-         Iterator it = MCThread.remoteChunks.iterator();
-    	
-         //System.out.println(filename);
-    	
-         while (it.hasNext()) {
-         RemoteIdentifier ri = (RemoteIdentifier) it.next();
-    	 
-         if(ri.getFilename().equals(filename)){
-         input.sendDeleteMessage(hash);
-         }else{
-    		
-         }
-    	 
-         }
-         */
+        RemoteIdentifierContainer ric = MCThread.remoteChunks;
+        
+        String encoded_filename = FileDescriptor.filename2Hash(filename);
+        Set<RemoteIdentifier> set = ric.getIdentifiersByHash(encoded_filename);
+        
+        /*Only sends Delete Message if we really are the initiator-peer*/
+        if(set.isEmpty()){
+            FileChooserFrame.log.append("Unnable to Delete File. It doesn't exist or you don't have permission to Delete it.\n");
+        }else{
+            input.sendDeleteMessage(encoded_filename);
+        }
+         
     }
 
     private void openDeleteDialog()
@@ -278,21 +279,15 @@ public class FileChooserFrame extends JPanel implements ActionListener
             @Override
             public void mouseClicked(MouseEvent arg0)
             {
-                new Thread()
+                try
                 {
-                    @Override
-                    public void run()
-                    {
-                        try
-                        {
-                            deleteFile(textField.getText());
-                        }
-                        catch (NoSuchAlgorithmException | IOException ex)
-                        {
-                            Logger.getLogger(FileChooserFrame.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                }.start();
+                    deleteFile(textField.getText());
+                }
+                catch (NoSuchAlgorithmException | IOException e)
+                {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
         });
 
@@ -325,22 +320,12 @@ public class FileChooserFrame extends JPanel implements ActionListener
             @Override
             public void mouseClicked(MouseEvent arg0)
             {
-                new Thread()
-                {
-                    @Override
-                    public void run()
-                    {
-                        try
-                        {
-                            input.doRestore(textField.getText());
-                        }
-                        catch (InvalidFile | IOException ex)
-                        {
-                            Logger.getLogger(FileChooserFrame.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                }.start();
-
+                try {
+                    input.doRestore(textField.getText());
+                } catch (InvalidFile | IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
         });
 
@@ -355,5 +340,20 @@ public class FileChooserFrame extends JPanel implements ActionListener
         dialog.setModal(true);
         dialog.pack();
         dialog.setVisible(true);
+    }
+    
+    public void loadRemoteIdentifiers() throws FileNotFoundException{
+        Scanner in = new Scanner(new FileReader("./config/remoteIdentifiers.txt"));
+
+        while (in.hasNextLine()) {
+            String line1 = in.nextLine();
+            String line2 = in.nextLine();
+            String line3 = in.nextLine();
+            MCThread.addRemoteIdentifier(new RemoteIdentifier(line1,line2,line3));
+        }
+        
+        log.append("RemoteIdentifiers successfully loaded...\n");
+        
+        in.close();
     }
 }

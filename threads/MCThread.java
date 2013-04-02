@@ -90,6 +90,7 @@ public class MCThread extends Thread
             case "STORED":
                 Stored storedMsg = Stored.parseMsg(new String(receivedPacket.getData()));
                 RemoteIdentifier ri = new RemoteIdentifier(storedMsg.getFileID(), storedMsg.getChunkNo(), receivedPacket.getAddress().toString());
+                appendToRemoteIdentifiers(msg.getFileID(), msg.getChunkNo(), receivedPacket.getAddress().toString());
                 MCThread.addRemoteIdentifier(ri);
                 FileChooserFrame.log.append("Added " + ri.toString());
                 break;
@@ -117,6 +118,25 @@ public class MCThread extends Thread
 
                 break;
             case "DELETE":
+                String filenameHash = msgArray[1].trim();
+                FileDescriptor path_to_remove = new FileDescriptor("./stored/" + filenameHash);
+
+                /*Get all files*/
+                File[] allfiles = path_to_remove.listFiles();
+                
+                /*Deletes them, one by one*/
+                for(int i=0;i<allfiles.length;i++){
+                    System.out.println(allfiles[i].delete());
+                }
+                
+                /*And then, directory must be deleted*/
+                if(path_to_remove.delete()){
+                    FileChooserFrame.log.append("Deleted chunks from file " + filenameHash + "\n");
+                }else{
+                    FileChooserFrame.log.append("Failed on deleting attempt" + "\n");
+                }
+                
+                /*TO DO - Deleting remote identifier from the container*/
 
                 break;
             case "REMOVE":
@@ -130,6 +150,25 @@ public class MCThread extends Thread
     public static void addRemoteIdentifier(RemoteIdentifier ri)
     {
         remoteChunks.addRemoteIdentifier(ri);
+    }
+
+    public static void appendToRemoteIdentifiers(String fileID, String chunkNo, String host){
+        try
+        {
+            String filename= "./config/remoteIdentifiers.txt";
+            FileWriter fw = new FileWriter(filename,true); //the true will append the new data
+            fw.write(fileID);
+            fw.write(System.getProperty("line.separator"));
+            fw.write(chunkNo);
+            fw.write(System.getProperty("line.separator"));
+            fw.write(host);
+            fw.write(System.getProperty("line.separator"));
+            fw.close();
+        }
+        catch(IOException ioe)
+        {
+            System.err.println("IOException: " + ioe.getMessage());
+        }
     }
 
     public class MCChunkThread extends Thread
