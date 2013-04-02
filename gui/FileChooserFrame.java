@@ -33,7 +33,7 @@ public class FileChooserFrame extends JPanel implements ActionListener
     private JButton btnDelete;
     static private final String newline = "\n";
 
-    public FileChooserFrame() throws IOException
+    public FileChooserFrame() throws IOException, ClassNotFoundException
     {
         super(new BorderLayout());
 
@@ -69,6 +69,9 @@ public class FileChooserFrame extends JPanel implements ActionListener
                  restoreFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);*/
             }
         });
+        
+        
+        
 
 
         //For layout purposes, put the buttons in a separate panel
@@ -115,18 +118,19 @@ public class FileChooserFrame extends JPanel implements ActionListener
         add(logScrollPane, BorderLayout.CENTER);
 
 
-        mc = new MCThread();
+        mc = new MCThread(RemoteIdentifierContainer.load());
         mdb = new MDBThread();
         mdr = new MDRThread();
         input = new UserInputThread();
 
-        loadRemoteIdentifiers();
+        
         
         // Initiating multicast channel threads
         mc.start();
         mdb.start();
         mdr.start();
         input.start();
+        
         
  
     }
@@ -189,12 +193,20 @@ public class FileChooserFrame extends JPanel implements ActionListener
      * Create the GUI and show it. For thread safety, this method should be invoked from the event dispatch thread.
      *
      * @throws IOException
+     * @throws ClassNotFoundException 
      */
-    private static void createAndShowGUI() throws IOException
+    private static void createAndShowGUI() throws IOException, ClassNotFoundException
     {
         //Create and set up the window.
         JFrame frame = new JFrame("Backup ME");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        
+        frame.addWindowListener(new WindowAdapter(){
+        	@Override
+        	public void windowClosing(WindowEvent ev){
+        		MCThread.remoteChunks.save();
+        	}
+        });
 
         //Add content to the window.
         frame.getContentPane().add(new FileChooserFrame());
@@ -241,7 +253,10 @@ public class FileChooserFrame extends JPanel implements ActionListener
                 {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
-                }
+                } catch (ClassNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
             }
         });
     }

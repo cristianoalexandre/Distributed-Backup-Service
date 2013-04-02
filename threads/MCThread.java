@@ -33,9 +33,9 @@ public class MCThread extends Thread
     // Boolean flag to control Chunk answers
     private boolean neededChunk = false;
 
-    public MCThread() throws IOException
+    public MCThread(RemoteIdentifierContainer ric) throws IOException
     {
-        remoteChunks = new RemoteIdentifierContainer();
+        remoteChunks = ric;
 
         rgen = new Random();
 
@@ -144,6 +144,7 @@ public class MCThread extends Thread
                 }
                 
                 /*TO DO - Deleting remote identifier from the container*/
+                remoteChunks.deleteRemoteIdentifier(filenameHash);
                 
 
                 break;

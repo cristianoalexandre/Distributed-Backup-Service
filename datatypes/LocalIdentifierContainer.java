@@ -1,10 +1,14 @@
 package datatypes;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public class LocalIdentifierContainer
+public class LocalIdentifierContainer implements java.io.Serializable
 {
     private Set<LocalIdentifier> localFiles;
 
@@ -39,4 +43,36 @@ public class LocalIdentifierContainer
         
         return null;
     }
+    
+    public static LocalIdentifierContainer load(){
+
+    	LocalIdentifierContainer ric = new LocalIdentifierContainer();
+
+		try { 
+			FileInputStream fis = new FileInputStream("serial2"); 
+			ObjectInputStream ois = new ObjectInputStream(fis); 
+			ric = (LocalIdentifierContainer)ois.readObject();
+			ois.close(); 
+		} 
+		catch(Exception e) { 
+			System.exit(0); 
+		} 
+		return ric;
+
+	}
+
+	public void save(){
+
+		try { 
+			FileOutputStream fos = new FileOutputStream("serial2"); 
+			ObjectOutputStream oos = new ObjectOutputStream(fos); 
+			oos.writeObject(this); 
+			oos.flush(); 
+			oos.close(); 
+		} 
+		catch(Exception e) {  
+			System.exit(0); 
+		} 
+
+	}
 }

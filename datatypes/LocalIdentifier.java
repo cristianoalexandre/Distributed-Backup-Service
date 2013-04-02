@@ -1,6 +1,6 @@
 package datatypes;
 
-public class LocalIdentifier
+public class LocalIdentifier implements java.io.Serializable
 {
     private String filenameHash;
     private String filenameReal;

@@ -1,5 +1,9 @@
 package datatypes;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Objects;
 
 public class RemoteIdentifier implements java.io.Serializable
@@ -53,7 +57,7 @@ public class RemoteIdentifier implements java.io.Serializable
     {
         return "RI: "+getFilenameHash()+" - "+getNumber()+" - "+getHost();
     }
-
+    
     
     
     @Override
@@ -65,4 +69,5 @@ public class RemoteIdentifier implements java.io.Serializable
         hash = 83 * hash + Objects.hashCode(this.host);
         return hash;
     }
+    
 }
