@@ -6,10 +6,13 @@ import datatypes.RemoteIdentifier;
 import exceptions.InvalidMessageArguments;
 import gui.FileChooserFrame;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -71,7 +74,10 @@ public class MCThread extends Thread
             catch (InvalidMessageArguments | IOException ex)
             {
                 Logger.getLogger(MCThread.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            } catch (NoSuchAlgorithmException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
         }
     }
 
@@ -80,8 +86,9 @@ public class MCThread extends Thread
      *
      * @param receivedMsg
      * @return
+     * @throws NoSuchAlgorithmException 
      */
-    private int parseMsg(DatagramPacket receivedPacket) throws InvalidMessageArguments, IOException
+    private int parseMsg(DatagramPacket receivedPacket) throws InvalidMessageArguments, IOException, NoSuchAlgorithmException
     {
         String[] msgArray = new String(receivedPacket.getData()).split(" ");
 
@@ -90,7 +97,7 @@ public class MCThread extends Thread
             case "STORED":
                 Stored storedMsg = Stored.parseMsg(new String(receivedPacket.getData()));
                 RemoteIdentifier ri = new RemoteIdentifier(storedMsg.getFileID(), storedMsg.getChunkNo(), receivedPacket.getAddress().toString());
-                appendToRemoteIdentifiers(msg.getFileID(), msg.getChunkNo(), receivedPacket.getAddress().toString());
+                appendToRemoteIdentifiers(storedMsg.getFileID(), storedMsg.getChunkNo(), receivedPacket.getAddress().toString());
                 MCThread.addRemoteIdentifier(ri);
                 FileChooserFrame.log.append("Added " + ri.toString());
                 break;
@@ -137,6 +144,7 @@ public class MCThread extends Thread
                 }
                 
                 /*TO DO - Deleting remote identifier from the container*/
+                
 
                 break;
             case "REMOVE":
