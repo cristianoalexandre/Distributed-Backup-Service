@@ -49,7 +49,7 @@ public class LocalIdentifierContainer implements java.io.Serializable
     	LocalIdentifierContainer ric = new LocalIdentifierContainer();
 
 		try { 
-			FileInputStream fis = new FileInputStream("serial2"); 
+			FileInputStream fis = new FileInputStream(FileDescriptor.localChunkContainerFile); 
 			ObjectInputStream ois = new ObjectInputStream(fis); 
 			ric = (LocalIdentifierContainer)ois.readObject();
 			ois.close(); 
@@ -64,7 +64,7 @@ public class LocalIdentifierContainer implements java.io.Serializable
 	public void save(){
 
 		try { 
-			FileOutputStream fos = new FileOutputStream("serial2"); 
+			FileOutputStream fos = new FileOutputStream(FileDescriptor.localChunkContainerFile); 
 			ObjectOutputStream oos = new ObjectOutputStream(fos); 
 			oos.writeObject(this); 
 			oos.flush(); 

@@ -15,6 +15,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
+
+import datatypes.LocalIdentifierContainer;
 import datatypes.RemoteIdentifier;
 import datatypes.RemoteIdentifierContainer;
 import datatypes.FileDescriptor;
@@ -114,6 +116,7 @@ public class FileChooserFrame extends JPanel implements ActionListener
         add(logScrollPane, BorderLayout.CENTER);
 
         RemoteIdentifierContainer r;
+        LocalIdentifierContainer l;
 
         if (new File(FileDescriptor.remoteChunkContainerFile).exists())
         {
@@ -122,6 +125,15 @@ public class FileChooserFrame extends JPanel implements ActionListener
         else
         {
             r = new RemoteIdentifierContainer();
+        }
+        
+        if (new File(FileDescriptor.localChunkContainerFile).exists())
+        {
+            l = LocalIdentifierContainer.load();
+        }
+        else
+        {
+        	l = new LocalIdentifierContainer();
         }
         
         mc = new MCThread(r);
@@ -209,6 +221,7 @@ public class FileChooserFrame extends JPanel implements ActionListener
             {
                 try
                 {
+                	UserInputThread.localFiles.save();
                     MCThread.remoteChunks.save();
                 }
                 catch (IOException ex)
