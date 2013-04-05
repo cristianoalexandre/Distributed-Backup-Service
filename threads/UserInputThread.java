@@ -4,7 +4,9 @@ import datatypes.FileDescriptor;
 import datatypes.LocalIdentifier;
 import datatypes.LocalIdentifierContainer;
 import datatypes.RemoteIdentifier;
+import datatypes.RemoteIdentifierContainer;
 import exceptions.InvalidFile;
+import exceptions.InvalidMessageArguments;
 import exceptions.MaxAttemptsReached;
 import gui.FileChooserFrame;
 
@@ -14,10 +16,15 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.security.NoSuchAlgorithmException;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import messages.Chunk;
 import messages.GetChunk;
 
 import messages.PutChunk;
+import static threads.MDRThread.multicastAddress;
 
 public class UserInputThread extends Thread
 {
@@ -26,9 +33,16 @@ public class UserInputThread extends Thread
     private MulticastSocket outputMCSocket;
     // Keep Local Chunks...
     public static LocalIdentifierContainer localFiles;
+    private boolean MDRChunkReceived;
+    // Which files have I requested?
+    public static ArrayList<String> recoveringFiles;
+    
 
     public UserInputThread() throws IOException
     {
+        recoveringFiles = new ArrayList<>();
+        MDRChunkReceived = false;
+
         outputMDBSocket = new MulticastSocket(MDBThread.multicastPort);
         outputMDBSocket.setTimeToLive(1);
 
@@ -87,10 +101,11 @@ public class UserInputThread extends Thread
         FileChooserFrame.log.append("==== Finished. ====");
     }
 
-    public void doRestore(String filename) throws InvalidFile, IOException
+    public void doRestore(String filename) throws InvalidFile, IOException, InterruptedException
     {
         // First, search the filename on local files
         LocalIdentifier lfile = localFiles.getIdentifierByFilename(filename);
+        
         String hashname;
 
         if (lfile != null)
@@ -100,21 +115,36 @@ public class UserInputThread extends Thread
         else
         {
             throw new InvalidFile();
-        }
+        }        
 
         // Now, get the related chunk identifiers
-        Set<RemoteIdentifier> ris = MCThread.remoteChunks.getIdentifiersByHash(hashname);
-
+        HashSet<RemoteIdentifier> ris = (HashSet<RemoteIdentifier>) MCThread.remoteChunks.getIdentifiersByHash(hashname);
+        
         if (ris.isEmpty())
         {
             throw new InvalidFile();
-        }
+        }        
 
         // For each identifier, send a GETCHUNK msg to the MC channel
+        recoveringFiles.add(hashname);
         for (RemoteIdentifier r : ris)
         {
-            GetChunk msg = new GetChunk(r.getFilenameHash(), r.getNumber());
-            outputMCSocket.send(new DatagramPacket(msg.toString().getBytes(),msg.toString().getBytes().length, InetAddress.getByName(MCThread.multicastAddress), MCThread.multicastPort));          
+            while (!MDRChunkReceived)
+            {              
+                // Send the GetChunk request
+                GetChunk msg = new GetChunk(r.getFilenameHash(), r.getNumber());
+                outputMCSocket.send(new DatagramPacket(msg.toString().getBytes(), msg.toString().getBytes().length, InetAddress.getByName(MCThread.multicastAddress), MCThread.multicastPort));
+
+                // Did the chunk got to its destination?
+                TimeOutThread tmt = new TimeOutThread(msg.getFileID(), msg.getChunkNo());
+
+                tmt.start();
+                Thread.sleep(500);
+                tmt.finish();
+            }
+
+            // Resetting values
+            MDRChunkReceived = false;
         }
     }
 
@@ -134,4 +164,55 @@ public class UserInputThread extends Thread
     {
     }
 
+    public class TimeOutThread extends Thread
+    {
+        private MulticastSocket MDRSocket;
+        private boolean stopFlag;
+        private String fileID;
+        private String chunkNo;
+
+        public TimeOutThread(String fileID, String chunkNo) throws IOException
+        {
+            stopFlag = false;
+
+            this.fileID = fileID;
+            this.chunkNo = chunkNo;
+
+            MDRSocket = new MulticastSocket(MDRThread.multicastPort);
+            MDRSocket.setTimeToLive(1);
+            MDRSocket.joinGroup(InetAddress.getByName(multicastAddress));
+        }
+
+        @Override
+        public void run()
+        {
+            try
+            {
+                while (!stopFlag)
+                {
+                    byte[] recvData = new byte[1024];
+                    DatagramPacket dp = new DatagramPacket(recvData, recvData.length);
+                    MDRSocket.receive(dp);
+
+                    String msg = new String(dp.getData());
+                    Chunk c = Chunk.parseMsg(msg);
+
+                    if (c.getChunkNo().equals(chunkNo) && c.getFileID().equals(fileID)
+                            && stopFlag == false)
+                    {
+                        MDRChunkReceived = true;
+                    }
+                }
+            }
+            catch (IOException | InvalidMessageArguments ex)
+            {
+                Logger.getLogger(UserInputThread.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+        public void finish()
+        {
+            stopFlag = true;
+        }
+    }
 }

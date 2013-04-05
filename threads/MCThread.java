@@ -23,8 +23,8 @@ import messages.Stored;
 public class MCThread extends Thread
 {
     // Multicast definitions
-    public static final String multicastAddress = "237.1.7.4";
-    public static final int multicastPort = 4006;
+    public static final String multicastAddress = "239.1.1.1";
+    public static final int multicastPort = 1111;
     private MulticastSocket inputSocket;
     private MulticastSocket MDRSocket;
     // Random number generator

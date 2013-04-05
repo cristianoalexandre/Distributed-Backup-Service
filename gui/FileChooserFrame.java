@@ -107,9 +107,6 @@ public class FileChooserFrame extends JPanel implements ActionListener
             public void mouseClicked(MouseEvent e)
             {
                 openDeleteDialog();
-                /*DeleteFrame deleteFrame = new DeleteFrame();
-                 deleteFrame.setVisible(true);
-                 deleteFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);*/
             }
         });
         buttonPanel.add(btnDelete);
@@ -126,16 +123,16 @@ public class FileChooserFrame extends JPanel implements ActionListener
         {
             r = new RemoteIdentifierContainer();
         }
-        
+
         if (new File(FileDescriptor.localChunkContainerFile).exists())
         {
             l = LocalIdentifierContainer.load();
         }
         else
         {
-        	l = new LocalIdentifierContainer();
+            l = new LocalIdentifierContainer();
         }
-        
+
         mc = new MCThread(r);
         mdb = new MDBThread();
         mdr = new MDRThread();
@@ -148,6 +145,7 @@ public class FileChooserFrame extends JPanel implements ActionListener
         input.start();
     }
 
+    @Override
     public void actionPerformed(ActionEvent e)
     {
 
@@ -221,7 +219,7 @@ public class FileChooserFrame extends JPanel implements ActionListener
             {
                 try
                 {
-                	UserInputThread.localFiles.save();
+                    UserInputThread.localFiles.save();
                     MCThread.remoteChunks.save();
                 }
                 catch (IOException ex)
@@ -274,6 +272,7 @@ public class FileChooserFrame extends JPanel implements ActionListener
 
         SwingUtilities.invokeLater(new Runnable()
         {
+            @Override
             public void run()
             {
                 //Turn off metal's use of bold fonts
@@ -284,7 +283,6 @@ public class FileChooserFrame extends JPanel implements ActionListener
                 }
                 catch (IOException | ClassNotFoundException e)
                 {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
             }
@@ -371,10 +369,9 @@ public class FileChooserFrame extends JPanel implements ActionListener
                 {
                     input.doRestore(textField.getText());
                 }
-                catch (InvalidFile | IOException e)
+                catch (InvalidFile | IOException | InterruptedException e )
                 {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    Logger.getLogger(FileChooserFrame.class.getName()).log(Level.SEVERE, null, e);
                 }
             }
         });
@@ -390,22 +387,5 @@ public class FileChooserFrame extends JPanel implements ActionListener
         dialog.setModal(true);
         dialog.pack();
         dialog.setVisible(true);
-    }
-
-    public void loadRemoteIdentifiers() throws FileNotFoundException
-    {
-        Scanner in = new Scanner(new FileReader("./config/remoteIdentifiers.txt"));
-
-        while (in.hasNextLine())
-        {
-            String line1 = in.nextLine();
-            String line2 = in.nextLine();
-            String line3 = in.nextLine();
-            MCThread.addRemoteIdentifier(new RemoteIdentifier(line1, line2, line3));
-        }
-
-        log.append("RemoteIdentifiers successfully loaded...\n");
-
-        in.close();
     }
 }
