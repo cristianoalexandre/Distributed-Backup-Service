@@ -1,12 +1,9 @@
 package datatypes;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.Objects;
+import java.io.Serializable;
 
-public class RemoteIdentifier implements java.io.Serializable
+public class RemoteIdentifier implements Serializable
 {
     private String filenameHash;
     private String number;
@@ -37,29 +34,30 @@ public class RemoteIdentifier implements java.io.Serializable
     @Override
     public boolean equals(Object obj)
     {
-        if (obj.getClass() != this.getClass()) return false;
-        
+        if (obj.getClass() != this.getClass())
+        {
+            return false;
+        }
+
         RemoteIdentifier r = (RemoteIdentifier) obj;
-        
+
         return (r.getNumber().equals(this.getNumber())
                 && r.getHost().equals(this.getHost())
                 && r.getFilenameHash().equals(this.getFilenameHash()));
     }
-    
+
     public boolean sameChunkAs(RemoteIdentifier r)
     {
         return (r.getNumber().equals(this.getNumber())
-                && r.getFilenameHash().equals(this.getFilenameHash())); 
+                && r.getFilenameHash().equals(this.getFilenameHash()));
     }
 
     @Override
     public String toString()
     {
-        return "RI: "+getFilenameHash()+" - "+getNumber()+" - "+getHost();
+        return "RI: " + getFilenameHash() + " - " + getNumber() + " - " + getHost();
     }
-    
-    
-    
+
     @Override
     public int hashCode()
     {
@@ -69,5 +67,4 @@ public class RemoteIdentifier implements java.io.Serializable
         hash = 83 * hash + Objects.hashCode(this.host);
         return hash;
     }
-    
 }

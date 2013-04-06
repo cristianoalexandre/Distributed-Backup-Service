@@ -1,12 +1,12 @@
 package datatypes;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -81,7 +81,6 @@ public class RemoteIdentifierContainer implements Serializable
 
     public static RemoteIdentifierContainer load() throws IOException, ClassNotFoundException
     {
-
         RemoteIdentifierContainer ric = null;
 
         FileInputStream fis = new FileInputStream(FileDescriptor.remoteChunkContainerFile);
@@ -99,5 +98,33 @@ public class RemoteIdentifierContainer implements Serializable
         oos.writeObject(this);
         oos.flush();
         oos.close();
+    }
+
+    public static void bubbleSort(HashSet<RemoteIdentifier> r)
+    {
+        ArrayList<RemoteIdentifier> ris = new ArrayList<>(r);
+
+        boolean sorted = false;
+        while (!sorted)
+        {
+            for (int i = 0; i < ris.size() - 1; i++)
+            {
+                if (i == 0)
+                {
+                    sorted = true;
+                }
+
+                int num1 = Integer.parseInt(ris.get(i).getNumber(), 10);
+                int num2 = Integer.parseInt(ris.get(i + 1).getNumber(), 10);
+
+                if (num1 > num2)
+                {
+                    RemoteIdentifier tmp = ris.get(i);
+                    ris.set(i,ris.get(i + 1));
+                    ris.set(i + 1, tmp);
+                    sorted = false;
+                }
+            }
+        }
     }
 }

@@ -20,8 +20,8 @@ import messages.Stored;
 public class MDBThread extends Thread
 {
     // Multicast incoming definitions
-    public static final String multicastAddress = "237.1.7.2";
-    public static final int multicastPort = 4004;
+    public static final String multicastAddress = "239.2.2.2";
+    public static final int multicastPort = 2222;
     private final MulticastSocket inputSocket;
     // MC multicast
     private final MulticastSocket mcSocket;
@@ -60,7 +60,8 @@ public class MDBThread extends Thread
                 switch (msgReceived.split(" ")[0])
                 {
                     case "PUTCHUNK":
-                        parseStored(msgReceived);
+                        if (receivePacket.getAddress().toString().equals(InetAddress.getByAddress(InetAddress.getLocalHost().getAddress()).toString()))
+                            parseStored(msgReceived);
                         break;
                 }
             }
@@ -80,7 +81,7 @@ public class MDBThread extends Thread
             InetAddress MCAddress = InetAddress.getByName(MCThread.multicastAddress);
             outputSocket.send(new DatagramPacket(st.toString().getBytes(), st.toString().length(), MCAddress, MCThread.multicastPort));
         }
-        
+
         FileChooserFrame.log.append("MDB - Sent: " + st + "\n");
     }
 
@@ -88,7 +89,7 @@ public class MDBThread extends Thread
     {
         // Creating a PutChunk object from parsing the message...
         PutChunk msg = PutChunk.parseMsg(msgReceived);
-        
+
         // Selecting a random time to sleep - give time for other threads to volunteer!
         int sleepTime = rgen.nextInt(400);
 
@@ -153,12 +154,12 @@ public class MDBThread extends Thread
 
                     mcSocket.receive(receivePacket);
                     String receivedMsg = new String(receivePacket.getData());
-                    
+
                     //FileChooserFrame.log.append("MDB - Received (MC Channel): " + receivedMsg + "\n");
-                    
+
                     // Checking if the message is a STORED and matches our file
 
-                    
+
                     storedHosts.add(receivePacket.getAddress().toString());
                 }
                 catch (IOException ex)

@@ -115,7 +115,6 @@ public class FileDescriptor extends File
             
             /* Instead of using default, pass in a decoder. */
             return Charset.defaultCharset().decode(bb).toString();
-
         }
         finally
         {
