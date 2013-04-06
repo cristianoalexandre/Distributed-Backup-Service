@@ -148,7 +148,7 @@ public class MCThread extends Thread
                 
 
                 break;
-            case "REMOVE":
+            case "REMOVED":
 
                 break;
         }

@@ -66,9 +66,6 @@ public class FileChooserFrame extends JPanel implements ActionListener
             public void mouseClicked(MouseEvent e)
             {
                 openRestoreDialog();
-                /*RestoreFrame restoreFrame = new RestoreFrame();
-                 restoreFrame.setVisible(true);
-                 restoreFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);*/
             }
         });
 
@@ -107,9 +104,6 @@ public class FileChooserFrame extends JPanel implements ActionListener
             public void mouseClicked(MouseEvent e)
             {
                 openDeleteDialog();
-                /*DeleteFrame deleteFrame = new DeleteFrame();
-                 deleteFrame.setVisible(true);
-                 deleteFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);*/
             }
         });
         buttonPanel.add(btnDelete);
