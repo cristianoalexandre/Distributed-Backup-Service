@@ -1,6 +1,8 @@
 package threads;
 
 import datatypes.FileDescriptor;
+import datatypes.LocalIdentifier;
+import datatypes.LocalIdentifierContainer;
 import datatypes.RemoteIdentifierContainer;
 import datatypes.RemoteIdentifier;
 import exceptions.InvalidMessageArguments;
@@ -18,6 +20,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import messages.Chunk;
 import messages.GetChunk;
+import messages.PutChunk;
 import messages.Stored;
 
 public class MCThread extends Thread
@@ -27,6 +30,7 @@ public class MCThread extends Thread
     public static final int multicastPort = 1111;
     private MulticastSocket inputSocket;
     private MulticastSocket MDRSocket;
+    private MulticastSocket outputMDBSocket;
     // Random number generator
     private Random rgen;
     public static RemoteIdentifierContainer remoteChunks;
@@ -35,6 +39,10 @@ public class MCThread extends Thread
 
     public MCThread(RemoteIdentifierContainer ric) throws IOException
     {
+    	
+    	outputMDBSocket = new MulticastSocket(MDBThread.multicastPort);
+        outputMDBSocket.setTimeToLive(1);
+        
         remoteChunks = ric;
 
         rgen = new Random();
@@ -149,6 +157,48 @@ public class MCThread extends Thread
 
                 break;
             case "REMOVED":
+            	
+            	String fileID = msgArray[2].trim();
+            	String chunkNo = fileID + "_" + msgArray[3].trim();
+            	
+            	String path = "./backup/sent/" + fileID + "/" + chunkNo;
+            	
+            	System.out.println(path);
+            	
+            	File f = new File("./backup/sent/" + fileID);
+            	
+            	/*If is the initiator-peer*/
+            	if(f.exists()){
+            		
+            		/*Number of Replications that are supposed to exist on the network*/
+            		LocalIdentifier li = UserInputThread.localFiles.getIdentifierByFilehash(fileID);
+            		String repDegree = li.getReplicationDegree();
+            		System.out.println(repDegree);
+            		
+            		/*Number o Replications that really exist on the network*/
+            		int totalRepDegree = remoteChunks.getIdentifiersByHash(fileID).size();
+            		String totalRep = Integer.toString(totalRepDegree-1);
+            		System.out.println(totalRepDegree);
+            		
+            		/*If RepDegrees are not the same*/
+            		if(!totalRep.equals(repDegree)){
+            			
+            			//String path = "./backup/sent/" + fileID + "/" + chunkNo;
+            			
+            			PutChunk pc = null;
+            			pc = new PutChunk(path);
+            			
+            			/*Send PUTCHUNK*/
+            			InetAddress MDBAddress = InetAddress.getByName(MDBThread.multicastAddress);
+            			outputMDBSocket.send(new DatagramPacket(pc.toString().getBytes(), pc.toString().length(), MDBAddress, MDBThread.multicastPort));
+            			
+            			
+            		}
+            		
+            		/*Otherwise ignores the message...*/
+            		
+            	}
+            	
 
                 break;
         }

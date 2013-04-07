@@ -27,7 +27,7 @@ public class FileChooserFrame extends JPanel implements ActionListener
     private MDBThread mdb;
     private MDRThread mdr;
     private UserInputThread input;
-    private JButton openButton, restoreButton;
+    private JButton openButton, restoreButton, removeButton;
     public static JTextArea log;
     private JFileChooser fc;
     private JComboBox comboBox;
@@ -51,6 +51,9 @@ public class FileChooserFrame extends JPanel implements ActionListener
 
         openButton = new JButton("Backup (Select File)");
         openButton.addActionListener(this);
+        
+        removeButton = new JButton("Remove Chunks");
+        removeButton.addActionListener(this);
 
         restoreButton = new JButton("Restore");
         restoreButton.addActionListener(new ActionListener()
@@ -107,6 +110,7 @@ public class FileChooserFrame extends JPanel implements ActionListener
             }
         });
         buttonPanel.add(btnDelete);
+        buttonPanel.add(removeButton);
         add(logScrollPane, BorderLayout.CENTER);
 
         RemoteIdentifierContainer r;
@@ -178,6 +182,37 @@ public class FileChooserFrame extends JPanel implements ActionListener
             }
             log.setCaretPosition(log.getDocument().getLength());
         }
+        else if (e.getSource() == removeButton)
+        {
+            int returnVal = fc.showOpenDialog(FileChooserFrame.this);
+
+            if (returnVal == JFileChooser.APPROVE_OPTION)
+            {
+                final File file = fc.getSelectedFile();
+                //This is where a real application would open the file.
+                log.append("Removing chunks from: " + file.getName() + newline);
+
+
+                new Thread()
+                {
+                    @Override
+                    public void run()
+                    {
+                            try {
+								input.removeChunk(file.getName(), file.getPath());
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+                       
+                    }
+                }.start();
+
+
+            }
+            log.setCaretPosition(log.getDocument().getLength());
+        }
+        
     }
 
     /**

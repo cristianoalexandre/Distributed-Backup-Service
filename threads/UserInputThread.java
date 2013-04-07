@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -51,6 +52,7 @@ public class UserInputThread extends Thread
 
         localFiles = new LocalIdentifierContainer();
     }
+    
 
     public void doBackup(String filename, String path, int replicationDegree) throws InterruptedException, IOException, NoSuchAlgorithmException, MaxAttemptsReached
     {
@@ -157,6 +159,24 @@ public class UserInputThread extends Thread
 
         /*send toDelete_message*/
         outputMCSocket.send(new DatagramPacket(toDelete_message.getBytes(), toDelete_message.length(), MCAddress, MCThread.multicastPort));
+    }
+    
+    public void removeChunk(String filename, String path) throws IOException{
+    	
+    	String filenameID = filename.substring(0,64);
+    	String chunkNo = filename.substring(65, 71);
+    	String version = "1.0";
+    	
+    	String removed_message = "REMOVED " + version + " " + filenameID + " " + chunkNo + "\r\n\r\n";
+    	
+    	InetAddress MCAddress = InetAddress.getByName(MCThread.multicastAddress);
+
+        /*send removed_message*/
+        outputMCSocket.send(new DatagramPacket(removed_message.getBytes(), removed_message.length(), MCAddress, MCThread.multicastPort));
+        
+        /*Removes the chunk from the file system*/
+    	File f = new File("./stored/" + filenameID + "/" + filename);
+    	f.delete();
     }
 
     @Override
